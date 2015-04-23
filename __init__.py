@@ -4,7 +4,7 @@
     PostNAS_Search
     -------------------
     Date                : April 2015
-    copyright          : (C) 2015 by Marvin Brandt / Kreis-Unna
+    copyright          : (C) 2015 by Kreis-Unna
     email                : marvin.brandt@kreis-unna.de
  ***************************************************************************
  *                                                                                                                                    *

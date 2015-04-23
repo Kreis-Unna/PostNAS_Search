@@ -4,7 +4,7 @@
     PostNAS_Search
     -------------------
     Date                : April 2015
-    copyright          : (C) 2015 by Marvin Brandt / Kreis-Unna
+    copyright          : (C) 2015 by Kreis-Unna
     email                : marvin.brandt@kreis-unna.de
  ***************************************************************************
  *                                                                                                                                    *
@@ -61,7 +61,7 @@ class PostNAS_Search:
 
     def initGui(self):
         # Create Conf-Action and Menuentry
-        self.confAction = QAction( QIcon("alkis:logo.svg" ), "Konfiguration...", self.iface.mainWindow())
+        self.confAction = QAction("Einstellungen", self.iface.mainWindow())
         self.confAction.setWhatsThis("Konfiguration der PostNAS-Suche")
         self.confAction.setStatusTip("Konfiguration der PostNAS-Suche")
         self.confAction.triggered.connect(self.showConf)

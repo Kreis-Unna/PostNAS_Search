@@ -4,7 +4,7 @@
     PostNAS_Search
     -------------------
     Date                : April 2015
-    copyright          : (C) 2015 by Marvin Brandt / Kreis-Unna
+    copyright          : (C) 2015 by Kreis-Unna
     email                : marvin.brandt@kreis-unna.de
  ***************************************************************************
  *                                                                                                                                    *
@@ -23,7 +23,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtSql import *
 from PyQt4 import QtGui, uic, QtCore
 from qgis.core import *
-from Ui_PostNAS_Search_dialog_base import Ui_PostNAS_SearchDialogBase
+from Ui_PostNAS_SearchDialogBase import Ui_PostNAS_SearchDialogBase
 
 class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
     def __init__(self, parent=None,  iface=None):

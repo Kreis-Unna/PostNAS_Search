@@ -105,7 +105,6 @@ class Ui_Dialog(object):
         self.label_3.setText(_translate("Dialog", "Paßwort", None))
         self.label.setText(_translate("Dialog", "Datenbankname", None))
 
-
 if __name__ == "__main__":
     import sys
     app = QtGui.QApplication(sys.argv)

@@ -80,11 +80,12 @@ class PostNAS_Search:
         # Add toolbar button and menu item
         self.iface.addToolBarIcon(self.action)
 
-    def toggleWidget(self):
+    def toggleWidget(self, event):
         if self.searchDockWidget == None:
             self.searchDockWidget = QDockWidget(self.iface.mainWindow())
             self.searchDockWidget.setWindowTitle(self.tr(u'Suche'))
             self.searchDockWidget.setWidget(self.dlg)
+            self.searchDockWidget.closeEvent = self.toggleWidget
             self.iface.addDockWidget(self.searchDockWidgetArea, self.searchDockWidget)
             self.action.setChecked(True)
         else:
@@ -92,7 +93,7 @@ class PostNAS_Search:
             self.iface.removeDockWidget(self.searchDockWidget)
             self.searchDockWidget = None
             self.action.setChecked(False)
-            
+    
     def showConf(self):
         dlg = PostNAS_ConfDialog(self)
         dlg.exec_()

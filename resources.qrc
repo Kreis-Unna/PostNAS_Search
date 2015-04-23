@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/plugins/PostNAS_Search" >
+        <file>marker-delete.png</file>
+    </qresource>
+    <qresource prefix="/plugins/PostNAS_Search" >
+        <file>search_16x16.png</file>
+    </qresource>
+    <qresource prefix="/plugins/PostNAS_Search" >
+        <file>search_24x24.png</file>
+    </qresource>
+</RCC>

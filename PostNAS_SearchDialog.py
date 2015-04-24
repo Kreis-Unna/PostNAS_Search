@@ -189,14 +189,9 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
             vlayer.setRendererV2(myRenderer)
             vlayer.setBlendMode(13)
             
-            if(len(QgsProject.instance().layerTreeRoot().children()) > 0):
-                lastActiveLayer = self.iface.activeLayer()
-                firstLayer = QgsProject.instance().layerTreeRoot().children()[0].layer()
-                self.iface.setActiveLayer(firstLayer)
-                self.searchLayer = self.map.addMapLayer(vlayer)
-                self.iface.setActiveLayer(lastActiveLayer)
-            else:
-                self.searchLayer = self.map.addMapLayer(vlayer)
+            # Insert Layer at Top of Legend
+            QgsMapLayerRegistry.instance().addMapLayer(vlayer, False)
+            QgsProject.instance().layerTreeRoot().insertLayer(0, vlayer)
             
             canvas = self.iface.mapCanvas()
             canvas.setExtent(vlayer.extent().buffer(50))
@@ -221,14 +216,9 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
             vlayer.setRendererV2(myRenderer)
             vlayer.setBlendMode(13)
             
-            if(len(QgsProject.instance().layerTreeRoot().children()) > 0):
-                lastActiveLayer = self.iface.activeLayer()
-                firstLayer = QgsProject.instance().layerTreeRoot().children()[0].layer()
-                self.iface.setActiveLayer(firstLayer)
-                self.searchLayer = self.map.addMapLayer(vlayer)
-                self.iface.setActiveLayer(lastActiveLayer)
-            else:
-                self.searchLayer = self.map.addMapLayer(vlayer)
+            # Insert Layer at Top of Legend
+            QgsMapLayerRegistry.instance().addMapLayer(vlayer, False)
+            QgsProject.instance().layerTreeRoot().insertLayer(0, vlayer)
             
             canvas = self.iface.mapCanvas()
             canvas.setExtent(vlayer.extent().buffer(50))
@@ -253,14 +243,9 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
             vlayer.setRendererV2(myRenderer)
             vlayer.setBlendMode(13)
             
-            if(len(QgsProject.instance().layerTreeRoot().children()) > 0):
-                lastActiveLayer = self.iface.activeLayer()
-                firstLayer = QgsProject.instance().layerTreeRoot().children()[0].layer()
-                self.iface.setActiveLayer(firstLayer)
-                self.searchLayer = self.map.addMapLayer(vlayer)
-                self.iface.setActiveLayer(lastActiveLayer)
-            else:
-                self.searchLayer = self.map.addMapLayer(vlayer)
+            # Insert Layer at Top of Legend
+            QgsMapLayerRegistry.instance().addMapLayer(vlayer, False)
+            QgsProject.instance().layerTreeRoot().insertLayer(0, vlayer)
             
             canvas = self.iface.mapCanvas()
             canvas.setExtent(vlayer.extent().buffer(50))

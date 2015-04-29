@@ -4,7 +4,7 @@ qgisMinimumVersion=2.0
 description=Searchfunction for PostNAS Database
 description[de]=Suchfunktionalität für eine PostNAS Datenbank
 version=1.0.0
-author=Marvin Brandt / Kreis-Unna
+author=Marvin Brandt - Kreis-Unna
 email=marvin.brandt@kreis-unna.de
 
 tags=cadastre,germany,NAS,ALKIS,PostNAS
@@ -13,3 +13,7 @@ homepage=https://github.com/Kreis-Unna/PostNAS_Search
 tracker=https://github.com/Kreis-Unna/PostNAS_Search
 repository=https://github.com/Kreis-Unna/PostNAS_Search
 icon=search_24x24.png
+
+about=This plugin can search parcesl in a PostNAS database. The concept of this plugin is a singel field search like google. So you can search substrings of the parcel identifier. After finding the parcel will be highlighted in the map.
+
+changelog=1.0 - First stable Version

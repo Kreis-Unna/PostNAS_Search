@@ -3,7 +3,7 @@ name=PostNAS Suchfunktionen
 qgisMinimumVersion=2.0
 description=Searchfunction for PostNAS Database
 description[de]=Suchfunktionalität für eine PostNAS Datenbank
-version=1.0.0
+version=1.1
 author=Marvin Brandt - Kreis-Unna
 email=marvin.brandt@kreis-unna.de
 
@@ -17,3 +17,4 @@ icon=search_24x24.png
 about=This plugin can search parcesl in a PostNAS database. The concept of this plugin is a singel field search like google. So you can search substrings of the parcel identifier. After finding the parcel will be highlighted in the map.
 
 changelog=1.0 - First stable Version
+1.1 - Abfrage verbessert um noch mehr Kombinationen bei Suche zu finden

@@ -50,7 +50,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                 ax_flurstueck.nenner, \
                 ax_flurstueck.flurstueckskennzeichen \
                 FROM ax_flurstueck \
-                JOIN ax_gemarkung ON ax_flurstueck.land::text = ax_gemarkung.land::text \
+                LEFT JOIN ax_gemarkung ON ax_flurstueck.land::text = ax_gemarkung.land::text \
                     AND ax_flurstueck.gemarkungsnummer::text = ax_gemarkung.gemarkungsnummer::text \
                 WHERE to_tsvector('german'::regconfig, \
                     ((((((((((((((((((((((( \
@@ -68,7 +68,11 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                     CASE \
                         WHEN ax_flurstueck.nenner IS NULL THEN \'0\'::text \
                         ELSE ax_flurstueck.nenner::text \
-                    END) || \'\" \'::text) || ax_gemarkung.bezeichnung::text) || \' \'::text) || \
+                    END) || \'\" \'::text) || 
+                    CASE
+	                    WHEN ax_gemarkung.bezeichnung IS NULL THEN ''::text
+	                    ELSE ax_gemarkung.bezeichnung::text
+                    END) || \' \'::text) || \
                     ax_flurstueck.flurnummer::text) || \' \"\'::text) || \
                     CASE \
                         WHEN ax_flurstueck.nenner IS NULL THEN ax_flurstueck.zaehler::text \

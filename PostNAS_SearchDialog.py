@@ -68,10 +68,10 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                     CASE \
                         WHEN ax_flurstueck.nenner IS NULL THEN \'0\'::text \
                         ELSE ax_flurstueck.nenner::text \
-                    END) || \'\" \'::text) || 
-                    CASE
-	                    WHEN ax_gemarkung.bezeichnung IS NULL THEN ''::text
-	                    ELSE ax_gemarkung.bezeichnung::text
+                    END) || \'\" \'::text) || \
+                    CASE \
+	                    WHEN ax_gemarkung.bezeichnung IS NULL THEN ''::text \
+	                    ELSE ax_gemarkung.bezeichnung::text \
                     END) || \' \'::text) || \
                     ax_flurstueck.flurnummer::text) || \' \"\'::text) || \
                     CASE \

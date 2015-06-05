@@ -45,6 +45,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
             query.prepare(
                 "SELECT ax_flurstueck.gemarkungsnummer, \
                 ax_gemarkung.bezeichnung, \
+                ax_flurstueck.land, \
                 ax_flurstueck.flurnummer, \
                 ax_flurstueck.zaehler, \
                 ax_flurstueck.nenner, \
@@ -87,6 +88,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                 fieldNrFlurst = query.record().indexOf("flurstueckskennzeichen")
                 fieldGemarkungsnummer = query.record().indexOf("gemarkungsnummer")
                 fieldGemarkungsname = query.record().indexOf("bezeichnung")
+                fieldLand = query.record().indexOf("land")
                 fieldFlurnummer = query.record().indexOf("flurnummer")
                 fieldZaehler = query.record().indexOf("zaehler")
                 fieldNenner = query.record().indexOf("nenner")
@@ -96,6 +98,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                     flurstuecknummer = query.value(fieldNrFlurst)
                     gemarkungsnummer = query.value(fieldGemarkungsnummer)
                     gemarkungsname = query.value(fieldGemarkungsname)
+                    land = query.value(fieldLand)
                     flurnummer = query.value(fieldFlurnummer)
                     zaehler = query.value(fieldZaehler)
                     nenner = query.value(fieldNenner)
@@ -107,29 +110,39 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                                 break
                         if(item_gemarkung is None):
                             item_gemarkung = QTreeWidgetItem(self.treeWidget)
-                            item_gemarkung.setText(0, "Gemarkung " + unicode(gemarkungsname) + " / " + str(gemarkungsnummer))
+                            if(gemarkungsname == NULL):
+                                item_gemarkung.setText(0, "Gemarkung " + str(gemarkungsnummer))
+                            else:
+                                item_gemarkung.setText(0, "Gemarkung " + unicode(gemarkungsname) + " / " + str(gemarkungsnummer))
                             item_gemarkung.setText(1, str(gemarkungsnummer))
                             item_gemarkung.setText(2, "gemarkung")
-                            item_gemarkung.setText(3, "05" + str(gemarkungsnummer).zfill(4))
+                            item_gemarkung.setText(3, str(land).zfill(2) + str(gemarkungsnummer).zfill(4))
                     else:
                         item_gemarkung = QTreeWidgetItem(self.treeWidget)
-                        item_gemarkung.setText(0, "Gemarkung " + unicode(gemarkungsname) + " / " + str(gemarkungsnummer))
+                        if(gemarkungsname == NULL):
+                            item_gemarkung.setText(0, "Gemarkung " + str(gemarkungsnummer))
+                        else:
+                            item_gemarkung.setText(0, "Gemarkung " + unicode(gemarkungsname) + " / " + str(gemarkungsnummer))
                         item_gemarkung.setText(1, str(gemarkungsnummer))
                         item_gemarkung.setText(2, "gemarkung")
-                        item_gemarkung.setText(3, "05" + str(gemarkungsnummer).zfill(4))
+                        item_gemarkung.setText(3, str(land).zfill(2) + str(gemarkungsnummer).zfill(4))
 
                     for i in range(0, item_gemarkung.childCount()):
                         if(item_gemarkung.child(i).text(1) == str(flurnummer)):
                             item_flur = item_gemarkung.child(i)
                             break
                     if(item_flur is None):
-                        item_flur = QTreeWidgetItem(item_gemarkung)
-                        item_flur.setText(0, "Flur " + str(flurnummer))
-                        item_flur.setText(1, str(flurnummer))
-                        item_flur.setText(2, "flur")
-                        item_flur.setText(3, "05" + str(gemarkungsnummer).zfill(4) + str(flurnummer).zfill(3))
+                        if(flurnummer != 0):
+                            item_flur = QTreeWidgetItem(item_gemarkung)
+                            item_flur.setText(0, "Flur " + str(flurnummer))
+                            item_flur.setText(1, str(flurnummer))
+                            item_flur.setText(2, "flur")
+                            item_flur.setText(3, str(land).zfill(2) + str(gemarkungsnummer).zfill(4) + str(flurnummer).zfill(3))
 
-                    item_flst = QTreeWidgetItem(item_flur)
+                    if(flurnummer != 0):
+                        item_flst = QTreeWidgetItem(item_flur)
+                    else:
+                        item_flst = QTreeWidgetItem(item_gemarkung)
                     if(nenner == NULL):
                         item_flst.setText(0, str(zaehler))
                     else:

@@ -53,7 +53,8 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                 FROM ax_flurstueck \
                 LEFT JOIN ax_gemarkung ON ax_flurstueck.land::text = ax_gemarkung.land::text \
                     AND ax_flurstueck.gemarkungsnummer::text = ax_gemarkung.gemarkungsnummer::text \
-                WHERE to_tsvector('german'::regconfig, \
+                    AND ax_gemarkung.endet IS NULL \
+                WHERE ax_flurstueck.endet IS NULL AND to_tsvector('german'::regconfig, \
                     ((((((((((((((((((((((( \
                     ax_flurstueck.flurstueckskennzeichen::text || \' \"\'::text) || \
                     lpad(ax_flurstueck.land::text, 2, \'0\'::text)) || \

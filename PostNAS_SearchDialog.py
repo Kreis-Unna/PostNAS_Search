@@ -58,13 +58,21 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                     ax_flurstueck.flurstueckskennzeichen::text || \' \"\'::text) || \
                     lpad(ax_flurstueck.land::text, 2, \'0\'::text)) || \
                     lpad(ax_flurstueck.gemarkungsnummer::text, 4, \'0\'::text)) || \
-                    \'-\'::text) || lpad(ax_flurstueck.flurnummer::text, 3, \'0\'::text)) || \
+                    \'-\'::text) || \
+                    CASE \
+                    	WHEN ax_flurstueck.flurnummer IS NULL THEN \'000\' \
+                    	ELSE lpad(ax_flurstueck.flurnummer::text, 3, \'0\'::text) \
+                    END) || \
                     \'-\'::text) || lpad(ax_flurstueck.zaehler::text, 5, \'0\'::text)) || \'/\'::text) || \
                     CASE \
                         WHEN ax_flurstueck.nenner IS NULL THEN \'000\'::text \
                         ELSE lpad(ax_flurstueck.nenner::text, 3, \'0\'::text) \
                     END) || \'\" \"\'::text) || ax_flurstueck.gemarkungsnummer::text) || \
-                    \'-\'::text) || ax_flurstueck.flurnummer::text) || \'-\'::text) || \
+                    \'-\'::text) || \
+                    CASE \
+                    	WHEN ax_flurstueck.flurnummer IS NULL THEN \'0\' \
+                    	ELSE ax_flurstueck.flurnummer::text \
+                    END) || \'-\'::text) || \
                     ax_flurstueck.zaehler::text) || \'/\'::text) || \
                     CASE \
                         WHEN ax_flurstueck.nenner IS NULL THEN \'0\'::text \
@@ -74,7 +82,10 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
 	                    WHEN ax_gemarkung.bezeichnung IS NULL THEN ''::text \
 	                    ELSE ax_gemarkung.bezeichnung::text \
                     END) || \' \'::text) || \
-                    ax_flurstueck.flurnummer::text) || \' \"\'::text) || \
+                    CASE \
+                    	WHEN ax_flurstueck.flurnummer IS NULL THEN \'0\' \
+                    	ELSE ax_flurstueck.flurnummer::text \
+                    END) || \' \"\'::text) || \
                     CASE \
                         WHEN ax_flurstueck.nenner IS NULL THEN ax_flurstueck.zaehler::text \
                         ELSE (ax_flurstueck.zaehler::text || \'/\'::text) || ax_flurstueck.nenner::text \

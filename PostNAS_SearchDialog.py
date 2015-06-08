@@ -143,14 +143,14 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                             item_flur = item_gemarkung.child(i)
                             break
                     if(item_flur is None):
-                        if(flurnummer != 0):
+                        if(flurnummer != 0 and flurnummer != NULL):
                             item_flur = QTreeWidgetItem(item_gemarkung)
                             item_flur.setText(0, "Flur " + str(flurnummer))
                             item_flur.setText(1, str(flurnummer))
                             item_flur.setText(2, "flur")
                             item_flur.setText(3, str(land).zfill(2) + str(gemarkungsnummer).zfill(4) + str(flurnummer).zfill(3))
 
-                    if(flurnummer != 0):
+                    if(flurnummer != 0 and flurnummer != NULL):
                         item_flst = QTreeWidgetItem(item_flur)
                     else:
                         item_flst = QTreeWidgetItem(item_gemarkung)

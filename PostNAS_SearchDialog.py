@@ -280,7 +280,11 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
         QgsProject.instance().layerTreeRoot().insertLayer(0, vlayer)
 
         canvas = self.iface.mapCanvas()
-        canvas.setExtent(vlayer.extent().buffer(50))
+        if(canvas.hasCrsTransformEnabled() == True):
+            transform = QgsCoordinateTransform(vlayer.crs(), canvas.mapSettings().destinationCrs())
+            canvas.setExtent(transform.transform(vlayer.extent().buffer(50)))
+        else:
+            canvas.setExtent(vlayer.extent().buffer(50))
 
         self.resetButton.setEnabled(True)
 

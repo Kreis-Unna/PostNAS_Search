@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog</class>
- <widget class="QDialog" name="Dialog">
+ <class>PostNAS_ConfDialogBase</class>
+ <widget class="QDialog" name="PostNAS_ConfDialogBase">
   <property name="windowModality">
    <enum>Qt::NonModal</enum>
   </property>
@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>330</width>
-    <height>220</height>
+    <height>291</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -25,33 +25,68 @@
     <height>220</height>
    </size>
   </property>
-  <property name="maximumSize">
-   <size>
-    <width>330</width>
-    <height>220</height>
-   </size>
-  </property>
   <property name="windowTitle">
-   <string>ALKIS-Import</string>
+   <string>PostNAS-Suche</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0" rowspan="2">
+  <layout class="QGridLayout" name="gridLayout_2">
+   <item row="0" column="0">
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
       <string>Datenbankeinstellungen</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout_2">
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_8">
-        <property name="text">
-         <string>Port</string>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="3" column="0" colspan="2">
+       <widget class="QTabWidget" name="tabWidget">
+        <property name="currentIndex">
+         <number>0</number>
         </property>
-        <property name="buddy">
-         <cstring>lePORT</cstring>
-        </property>
+        <widget class="QWidget" name="auth">
+         <attribute name="title">
+          <string>Authentifizierung</string>
+         </attribute>
+         <layout class="QGridLayout" name="gridLayout_5">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>Benutzername</string>
+            </property>
+            <property name="buddy">
+             <cstring>leUID</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="leUID">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Paßwort</string>
+            </property>
+            <property name="buddy">
+             <cstring>lePWD</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="lePWD">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="echoMode">
+             <enum>QLineEdit::Password</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </widget>
       </item>
-      <item row="2" column="1">
+      <item row="1" column="1">
        <widget class="QLineEdit" name="lePORT">
         <property name="inputMask">
          <string>99999; </string>
@@ -61,54 +96,10 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_7">
-        <property name="text">
-         <string>Host</string>
-        </property>
-        <property name="buddy">
-         <cstring>leHOST</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLineEdit" name="leHOST">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
+      <item row="2" column="1">
        <widget class="QLineEdit" name="leDBNAME"/>
       </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>Benutzername</string>
-        </property>
-        <property name="buddy">
-         <cstring>leUID</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>Paßwort</string>
-        </property>
-        <property name="buddy">
-         <cstring>lePWD</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="QLineEdit" name="leUID">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
+      <item row="2" column="0">
        <widget class="QLabel" name="label">
         <property name="text">
          <string>Datenbankname</string>
@@ -118,21 +109,51 @@
         </property>
        </widget>
       </item>
-      <item row="8" column="1">
-       <widget class="QLineEdit" name="lePWD">
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_8">
+        <property name="text">
+         <string>Port</string>
+        </property>
+        <property name="buddy">
+         <cstring>lePORT</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="leHOST">
         <property name="text">
          <string/>
         </property>
-        <property name="echoMode">
-         <enum>QLineEdit::Password</enum>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>Host</string>
+        </property>
+        <property name="buddy">
+         <cstring>leHOST</cstring>
         </property>
        </widget>
       </item>
      </layout>
+     <zorder>label_8</zorder>
+     <zorder>lePORT</zorder>
+     <zorder>label_7</zorder>
+     <zorder>leHOST</zorder>
+     <zorder>leDBNAME</zorder>
+     <zorder>label</zorder>
+     <zorder>tabWidget</zorder>
     </widget>
    </item>
-   <item row="4" column="0" colspan="2">
+   <item row="1" column="0">
     <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="standardButtons">
       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
      </property>
@@ -144,8 +165,6 @@
   <tabstop>leHOST</tabstop>
   <tabstop>lePORT</tabstop>
   <tabstop>leDBNAME</tabstop>
-  <tabstop>leUID</tabstop>
-  <tabstop>lePWD</tabstop>
   <tabstop>buttonBox</tabstop>
  </tabstops>
  <resources/>

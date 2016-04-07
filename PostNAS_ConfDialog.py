@@ -19,9 +19,9 @@
 from PyQt4.QtGui import QDialog
 from PyQt4.QtCore import pyqtSignature,  QSettings
 
-from Ui_PostNAS_ConfDialogBase import Ui_Dialog
+from PostNAS_ConfDialogBase import Ui_PostNAS_ConfDialogBase
 
-class PostNAS_ConfDialog(QDialog, Ui_Dialog):
+class PostNAS_ConfDialog(QDialog, Ui_PostNAS_ConfDialogBase):
     def __init__(self, parent = None,  iface = None):
         QDialog.__init__(self)
         self.setupUi(self)
@@ -31,7 +31,7 @@ class PostNAS_ConfDialog(QDialog, Ui_Dialog):
         self.leDBNAME.setText(settings.value("dbname", ""))
         self.leUID.setText(settings.value("user", ""))
         self.lePWD.setText(settings.value("password", ""))
-        
+
     def on_buttonBox_accepted(self):
         settings = QSettings("PostNAS", "PostNAS-Suche")
         settings.setValue("host", self.leHOST.text())
@@ -40,6 +40,6 @@ class PostNAS_ConfDialog(QDialog, Ui_Dialog):
         settings.setValue("user", self.leUID.text())
         settings.setValue("password", self.lePWD.text())
         QDialog.accept(self)
-        
+
     def on_buttonBox_rejected(self):
         QDialog.reject(self)

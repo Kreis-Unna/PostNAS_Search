@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:\Users\u200584\.qgis2\python\plugins\PostNAS_Search\PostNAS_SearchDialogBase.ui'
+# Form implementation generated from reading ui file 'PostNAS_SearchDialogBase.ui'
 #
-# Created: Thu Apr 23 10:27:59 2015
-#      by: PyQt4 UI code generator 4.10.3
+# Created: Thu Apr  7 17:06:05 2016
+#      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -62,15 +62,5 @@ class Ui_PostNAS_SearchDialogBase(object):
         self.showButton.setText(_translate("PostNAS_SearchDialogBase", "Anzeigen", None))
         self.resetButton.setToolTip(_translate("PostNAS_SearchDialogBase", "Ergebnis löschen", None))
         self.resetButton.setText(_translate("PostNAS_SearchDialogBase", "Reset", None))
-        
+
 import resources_rc
-
-if __name__ == "__main__":
-    import sys
-    app = QtGui.QApplication(sys.argv)
-    PostNAS_SearchDialogBase = QtGui.QDialog()
-    ui = Ui_PostNAS_SearchDialogBase()
-    ui.setupUi(PostNAS_SearchDialogBase)
-    PostNAS_SearchDialogBase.show()
-    sys.exit(app.exec_())
-

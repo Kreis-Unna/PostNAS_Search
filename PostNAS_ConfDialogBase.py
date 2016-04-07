@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'PostNAS_ConfDialogBase.ui'
 #
-# Created: Thu Apr  7 17:34:35 2016
+# Created: Thu Apr  7 18:16:07 2016
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -27,7 +27,7 @@ class Ui_PostNAS_ConfDialogBase(object):
     def setupUi(self, PostNAS_ConfDialogBase):
         PostNAS_ConfDialogBase.setObjectName(_fromUtf8("PostNAS_ConfDialogBase"))
         PostNAS_ConfDialogBase.setWindowModality(QtCore.Qt.NonModal)
-        PostNAS_ConfDialogBase.resize(330, 291)
+        PostNAS_ConfDialogBase.resize(547, 350)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)

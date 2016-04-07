@@ -23,6 +23,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtSql import *
 from PyQt4 import QtGui, uic, QtCore
 from qgis.core import *
+import qgis.core
 from PostNAS_SearchDialogBase import Ui_PostNAS_SearchDialogBase
 
 class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
@@ -300,6 +301,14 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
         self.dbPort = settings.value("port", "5432")
         self.dbUsername = settings.value("user", "")
         self.dbPassword = settings.value("password", "")
+
+        authcfg = settings.value( "authcfg", "" )
+
+        if authcfg != "" and hasattr(qgis.core,'QgsAuthManager'):
+            amc = qgis.core.QgsAuthMethodConfig()
+            qgis.core.QgsAuthManager.instance().loadAuthenticationConfig( authcfg, amc, True)
+            self.dbUsername = amc.config( "username", self.dbUsername )
+            self.dbPassword = amc.config( "password", self.dbPassword )
 
         self.db = QSqlDatabase.addDatabase("QPSQL")
         self.db.setHostName(self.dbHost)

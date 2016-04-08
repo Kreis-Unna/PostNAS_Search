@@ -106,9 +106,9 @@ class PostNAS_Search:
             self.iface.removeDockWidget(self.searchDockWidget)
 
         if hasattr(self.iface, "removePluginDatabaseMenu"):
-            self.iface.removePluginDatabaseMenu("&ALKIS", self.confAction)
+            self.iface.removePluginDatabaseMenu("&PostNAS-Suche", self.confAction)
         else:
-            self.iface.removePluginMenu("&ALKIS", self.confAction)
+            self.iface.removePluginMenu("&PostNAS-Suche", self.confAction)
 
         if self.confAction:
             self.confAction.deleteLater()

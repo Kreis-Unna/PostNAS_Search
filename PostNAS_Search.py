@@ -50,7 +50,7 @@ class PostNAS_Search:
         # Declare instance attributes
         self.actions = []
         self.menu = self.tr(u'&PostNAS_Search')
-        
+
         self.searchDockWidget = None
         self.searchDockWidgetArea = Qt.LeftDockWidgetArea
 
@@ -65,12 +65,22 @@ class PostNAS_Search:
         self.confAction.setWhatsThis("Konfiguration der PostNAS-Suche")
         self.confAction.setStatusTip("Konfiguration der PostNAS-Suche")
         self.confAction.triggered.connect(self.showConf)
-        
+
         if hasattr(self.iface, "addPluginToDatabaseMenu"):
             self.iface.addPluginToDatabaseMenu("&PostNAS-Suche", self.confAction)
         else:
             self.iface.addPluginToMenu("&PostNAS-Suche", self.confAction)
-        
+
+        self.toggleSearchAction = QAction(u"Flurstücksuche", self.iface.mainWindow())
+        self.toggleSearchAction.setWhatsThis(u"Starten/Schliessen der Flurstücksuche")
+        self.toggleSearchAction.setStatusTip(u"Starten/Schliessen der Flurstücksuche")
+        self.toggleSearchAction.triggered.connect(self.toggleWidget)
+
+        if hasattr(self.iface, "addPluginToDatabaseMenu"):
+            self.iface.addPluginToDatabaseMenu("&PostNAS-Suche", self.toggleSearchAction)
+        else:
+            self.iface.addPluginToMenu("&PostNAS-Suche", self.toggleSearchAction)
+
         # Create action that will start plugin configuration
         self.action = QAction(QIcon(":/plugins/PostNAS_Search/search_24x24.png"),u"Flurstücksuche", self.iface.mainWindow())
         self.action.setCheckable(True)
@@ -93,23 +103,29 @@ class PostNAS_Search:
             self.iface.removeDockWidget(self.searchDockWidget)
             self.searchDockWidget = None
             self.action.setChecked(False)
-    
+
     def showConf(self):
         dlg = PostNAS_ConfDialog(self)
         dlg.exec_()
-    
+
     def unload(self):
-        # Remove the Toolbar Icon 
+        # Remove the Toolbar Icon
         self.iface.removeToolBarIcon(self.action)
         # Remove DockWidget
         if self.searchDockWidget != None:
             self.iface.removeDockWidget(self.searchDockWidget)
-            
+
         if hasattr(self.iface, "removePluginDatabaseMenu"):
-            self.iface.removePluginDatabaseMenu("&ALKIS", self.confAction)
+            self.iface.removePluginDatabaseMenu("&PostNAS-Suche", self.confAction)
+            self.iface.removePluginDatabaseMenu("&PostNAS-Suche", self.toggleSearchAction)
         else:
-            self.iface.removePluginMenu("&ALKIS", self.confAction)
-            
+            self.iface.removePluginMenu("&PostNAS-Suche", self.confAction)
+            self.iface.removePluginMenu("&PostNAS-Suche", self.toggleSearchAction)
+
         if self.confAction:
             self.confAction.deleteLater()
             self.confAction = None
+
+        if self.toggleSearchAction:
+            self.toggleSearchAction.deleteLater()
+            self.toggleSearchAction = None

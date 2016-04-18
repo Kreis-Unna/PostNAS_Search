@@ -18,10 +18,11 @@
 
 from PyQt4.QtGui import QDialog
 from PyQt4.QtCore import pyqtSignature,  QSettings
+import qgis.gui
 
-from Ui_PostNAS_ConfDialogBase import Ui_Dialog
+from PostNAS_ConfDialogBase import Ui_PostNAS_ConfDialogBase
 
-class PostNAS_ConfDialog(QDialog, Ui_Dialog):
+class PostNAS_ConfDialog(QDialog, Ui_PostNAS_ConfDialogBase):
     def __init__(self, parent = None,  iface = None):
         QDialog.__init__(self)
         self.setupUi(self)
@@ -31,7 +32,16 @@ class PostNAS_ConfDialog(QDialog, Ui_Dialog):
         self.leDBNAME.setText(settings.value("dbname", ""))
         self.leUID.setText(settings.value("user", ""))
         self.lePWD.setText(settings.value("password", ""))
-        
+
+        if hasattr(qgis.gui,'QgsAuthConfigSelect'):
+            self.authCfgSelect = qgis.gui.QgsAuthConfigSelect( self, "postgres" )
+            self.tabWidget.insertTab( 1, self.authCfgSelect, "Konfigurationen" )
+            authcfg = settings.value( "authcfg", "" )
+
+            if authcfg:
+                self.tabWidget.setCurrentIndex( 1 )
+                self.authCfgSelect.setConfigId( authcfg );
+
     def on_buttonBox_accepted(self):
         settings = QSettings("PostNAS", "PostNAS-Suche")
         settings.setValue("host", self.leHOST.text())
@@ -39,7 +49,11 @@ class PostNAS_ConfDialog(QDialog, Ui_Dialog):
         settings.setValue("dbname", self.leDBNAME.text())
         settings.setValue("user", self.leUID.text())
         settings.setValue("password", self.lePWD.text())
+
+        if hasattr(qgis.gui,'QgsAuthConfigSelect'):
+            settings.setValue( "authcfg", self.authCfgSelect.configId() )
+
         QDialog.accept(self)
-        
+
     def on_buttonBox_rejected(self):
         QDialog.reject(self)

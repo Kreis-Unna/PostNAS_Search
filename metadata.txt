@@ -3,7 +3,7 @@ name=PostNAS Suchfunktionen
 qgisMinimumVersion=2.0
 description=Searchfunction for PostNAS Database
 description[de]=Suchfunktionalität für eine PostNAS Datenbank
-version=1.0.6
+version=1.0.7
 author=Marvin Brandt - Kreis-Unna
 email=marvin.brandt@kreis-unna.de
 

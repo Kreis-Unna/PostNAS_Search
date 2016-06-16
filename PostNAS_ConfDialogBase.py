@@ -109,7 +109,7 @@ class Ui_PostNAS_ConfDialogBase(object):
         PostNAS_ConfDialogBase.setWindowTitle(_translate("PostNAS_ConfDialogBase", "PostNAS-Suche", None))
         self.groupBox.setTitle(_translate("PostNAS_ConfDialogBase", "Datenbankeinstellungen", None))
         self.label_4.setText(_translate("PostNAS_ConfDialogBase", "Benutzername", None))
-        self.label_5.setText(_translate("PostNAS_ConfDialogBase", "Paßwort", None))
+        self.label_5.setText(_translate("PostNAS_ConfDialogBase", "Passwort", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.auth), _translate("PostNAS_ConfDialogBase", "Authentifizierung", None))
         self.lePORT.setInputMask(_translate("PostNAS_ConfDialogBase", "99999; ", None))
         self.lePORT.setText(_translate("PostNAS_ConfDialogBase", "5432", None))

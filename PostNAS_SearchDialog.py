@@ -3,8 +3,8 @@
 /***************************************************************************
     PostNAS_Search
     -------------------
-    Date                : April 2015
-    copyright          : (C) 2015 by Kreis-Unna
+    Date                : June 2016
+    copyright          : (C) 2016 by Kreis-Unna
     email                : marvin.brandt@kreis-unna.de
  ***************************************************************************
  *                                                                                                                                    *
@@ -43,57 +43,107 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
             self.loadDbSettings()
             self.db.open()
             query = QSqlQuery(self.db)
-            query.prepare(
-                "SELECT ax_flurstueck.gemarkungsnummer, \
-                ax_gemarkung.bezeichnung, \
-                ax_flurstueck.land, \
-                ax_flurstueck.flurnummer, \
-                ax_flurstueck.zaehler, \
-                ax_flurstueck.nenner, \
-                ax_flurstueck.flurstueckskennzeichen \
-                FROM ax_flurstueck \
-                LEFT JOIN ax_gemarkung ON ax_flurstueck.land::text = ax_gemarkung.land::text \
-                    AND ax_flurstueck.gemarkungsnummer::text = ax_gemarkung.gemarkungsnummer::text \
-                    AND ax_gemarkung.endet IS NULL \
-                WHERE ax_flurstueck.endet IS NULL AND to_tsvector('german'::regconfig, \
-                    ((((((((((((((((((((((( \
-                    ax_flurstueck.flurstueckskennzeichen::text || \' \"\'::text) || \
-                    lpad(ax_flurstueck.land::text, 2, \'0\'::text)) || \
-                    lpad(ax_flurstueck.gemarkungsnummer::text, 4, \'0\'::text)) || \
-                    \'-\'::text) || \
-                    CASE \
-                    	WHEN ax_flurstueck.flurnummer IS NULL THEN \'000\' \
-                    	ELSE lpad(ax_flurstueck.flurnummer::text, 3, \'0\'::text) \
-                    END) || \
-                    \'-\'::text) || lpad(ax_flurstueck.zaehler::text, 5, \'0\'::text)) || \'/\'::text) || \
-                    CASE \
-                        WHEN ax_flurstueck.nenner IS NULL THEN \'000\'::text \
-                        ELSE lpad(ax_flurstueck.nenner::text, 3, \'0\'::text) \
-                    END) || \'\" \"\'::text) || ax_flurstueck.gemarkungsnummer::text) || \
-                    \'-\'::text) || \
-                    CASE \
-                    	WHEN ax_flurstueck.flurnummer IS NULL THEN \'0\' \
-                    	ELSE ax_flurstueck.flurnummer::text \
-                    END) || \'-\'::text) || \
-                    ax_flurstueck.zaehler::text) || \'/\'::text) || \
-                    CASE \
-                        WHEN ax_flurstueck.nenner IS NULL THEN \'0\'::text \
-                        ELSE ax_flurstueck.nenner::text \
-                    END) || \'\" \'::text) || \
-                    CASE \
-	                    WHEN ax_gemarkung.bezeichnung IS NULL THEN ''::text \
-	                    ELSE ax_gemarkung.bezeichnung::text \
-                    END) || \' \'::text) || \
-                    CASE \
-                    	WHEN ax_flurstueck.flurnummer IS NULL THEN \'0\' \
-                    	ELSE ax_flurstueck.flurnummer::text \
-                    END) || \' \"\'::text) || \
-                    CASE \
-                        WHEN ax_flurstueck.nenner IS NULL THEN ax_flurstueck.zaehler::text \
-                        ELSE (ax_flurstueck.zaehler::text || \'/\'::text) || ax_flurstueck.nenner::text \
-                    END) || \'\" \'::text || ax_flurstueck.zaehler::text) @@ to_tsquery(\'german\', :search) \
-                ORDER BY ax_gemarkung.bezeichnung,flurstueckskennzeichen")
-            query.bindValue(":search", unicode(searchString))
+            if(self.checkPostnasSeachTable() == True):
+                query.prepare(
+                    "SELECT * FROM (SELECT \
+                        ax_flurstueck.gemarkungsnummer::integer, \
+                        ax_gemarkung.bezeichnung, \
+                        ax_flurstueck.land, \
+                        ax_flurstueck.flurnummer::integer, \
+                        ax_flurstueck.zaehler::integer, \
+                        ax_flurstueck.nenner::integer, \
+                        ax_flurstueck.flurstueckskennzeichen, \
+                        'aktuell' AS typ \
+                    FROM postnas_search \
+                    JOIN ax_flurstueck on postnas_search.gml_id = ax_flurstueck.gml_id AND ax_flurstueck.endet IS NULL \
+                    JOIN ax_gemarkung ON ax_flurstueck.land::text = ax_gemarkung.land::text AND ax_flurstueck.gemarkungsnummer::text = ax_gemarkung.gemarkungsnummer::text AND ax_gemarkung.endet IS NULL \
+                    WHERE vector @@ to_tsquery('german', :search1) \
+                    UNION \
+                    SELECT \
+                        ax_historischesflurstueck.gemarkungsnummer::integer, \
+                        ax_gemarkung.bezeichnung, \
+                        ax_historischesflurstueck.land, \
+                        ax_historischesflurstueck.flurnummer::integer, \
+                        ax_historischesflurstueck.zaehler::integer, \
+                        ax_historischesflurstueck.nenner::integer, \
+                        ax_historischesflurstueck.flurstueckskennzeichen, \
+                        'historisch' AS typ \
+                    FROM postnas_search \
+                    JOIN ax_historischesflurstueck on postnas_search.gml_id = ax_historischesflurstueck.gml_id AND ax_historischesflurstueck.endet IS NULL \
+                    JOIN ax_gemarkung ON ax_historischesflurstueck.land::text = ax_gemarkung.land::text AND ax_historischesflurstueck.gemarkungsnummer::text = ax_gemarkung.gemarkungsnummer::text AND ax_gemarkung.endet IS NULL \
+                    WHERE vector @@ to_tsquery('german', :search2)) as foo ORDER BY gemarkungsnummer,flurnummer,zaehler,nenner")
+            else:
+                query.prepare(
+                    "SELECT * FROM (SELECT \
+                        ax_flurstueck.gemarkungsnummer::integer, \
+                        ax_gemarkung.bezeichnung, \
+                        ax_flurstueck.land, \
+                        ax_flurstueck.flurnummer::integer, \
+                        ax_flurstueck.zaehler::integer, \
+                        ax_flurstueck.nenner::integer, \
+                        ax_flurstueck.flurstueckskennzeichen, \
+                        'aktuell' AS typ \
+                    FROM ax_flurstueck \
+                    JOIN ax_gemarkung ON ax_flurstueck.land::text = ax_gemarkung.land::text AND ax_flurstueck.gemarkungsnummer::text = ax_gemarkung.gemarkungsnummer::text AND ax_gemarkung.endet IS NULL \
+                    WHERE to_tsvector('german'::regconfig, \
+                        CASE WHEN ax_flurstueck.gemarkungsnummer IS NULL THEN '0000' ELSE ax_flurstueck.gemarkungsnummer END || ' ' || \
+                        CASE WHEN ax_flurstueck.flurnummer IS NULL THEN '000' ELSE ax_flurstueck.flurnummer END || ' ' || \
+                        CASE WHEN ax_flurstueck.zaehler IS NULL THEN 0 ELSE ax_flurstueck.zaehler END || ' ' || \
+                        CASE WHEN ax_flurstueck.nenner IS NULL THEN '' ELSE ax_flurstueck.nenner END || ' ' || \
+                        CASE WHEN ax_flurstueck.gemarkungsnummer IS NULL THEN '0000' ELSE ax_flurstueck.gemarkungsnummer END || \
+                        CASE WHEN ax_flurstueck.flurnummer IS NULL THEN '000' ELSE ax_flurstueck.flurnummer END || \
+                        CASE WHEN ax_flurstueck.zaehler IS NULL THEN 0 ELSE ax_flurstueck.zaehler END || \
+                        CASE WHEN ax_flurstueck.nenner IS NULL THEN '' ELSE ax_flurstueck.nenner END || ' ' || \
+                        CASE WHEN ax_flurstueck.gemarkungsnummer IS NULL THEN '0000' ELSE lpad(ax_flurstueck.gemarkungsnummer::text, 4, '0'::text) END || \
+                        CASE WHEN ax_flurstueck.flurnummer IS NULL THEN '000' ELSE lpad(ax_flurstueck.flurnummer::text, 3, '0'::text) END || \
+                        CASE WHEN ax_flurstueck.zaehler IS NULL THEN '' ELSE lpad(ax_flurstueck.zaehler::text, 5, '0'::text) END || \
+                        CASE WHEN ax_flurstueck.nenner IS NULL THEN '' ELSE lpad(ax_flurstueck.nenner::text, 3, '0'::text) END || ' ' || \
+                        CASE WHEN ax_flurstueck.gemarkungsnummer IS NULL THEN '0000' ELSE ax_flurstueck.gemarkungsnummer END || '-' || \
+                        CASE WHEN ax_flurstueck.flurnummer IS NULL THEN '000' ELSE ax_flurstueck.flurnummer END || '-' || \
+                        CASE WHEN ax_flurstueck.zaehler IS NULL THEN 0 ELSE ax_flurstueck.zaehler END || '-' || \
+                        CASE WHEN ax_flurstueck.nenner IS NULL THEN '' ELSE '/' || ax_flurstueck.nenner END || ' ' || \
+                        CASE WHEN ax_flurstueck.gemarkungsnummer IS NULL THEN '0000' ELSE lpad(ax_flurstueck.gemarkungsnummer::text, 4, '0'::text) END || '-' || \
+                        CASE WHEN ax_flurstueck.flurnummer IS NULL THEN '000' ELSE lpad(ax_flurstueck.flurnummer::text, 3, '0'::text) END || '-' || \
+                        CASE WHEN ax_flurstueck.zaehler IS NULL THEN '' ELSE lpad(ax_flurstueck.zaehler::text, 5, '0'::text) END || '-' || \
+                        CASE WHEN ax_flurstueck.nenner IS NULL THEN '' ELSE '/' || lpad(ax_flurstueck.nenner::text, 3, '0'::text) END || ' ' || \
+                        CASE WHEN ax_gemarkung.bezeichnung IS NOT NULL THEN ax_gemarkung.bezeichnung END) @@ to_tsquery('german', :search1) \
+                    UNION \
+                    SELECT \
+                        ax_historischesflurstueck.gemarkungsnummer::integer, \
+                        ax_gemarkung.bezeichnung, \
+                        ax_historischesflurstueck.land, \
+                        ax_historischesflurstueck.flurnummer::integer, \
+                        ax_historischesflurstueck.zaehler::integer, \
+                        ax_historischesflurstueck.nenner::integer, \
+                        ax_historischesflurstueck.flurstueckskennzeichen, \
+                        'historisch' AS typ \
+                    FROM ax_historischesflurstueck \
+                    JOIN ax_gemarkung ON ax_historischesflurstueck.land::text = ax_gemarkung.land::text AND ax_historischesflurstueck.gemarkungsnummer::text = ax_gemarkung.gemarkungsnummer::text AND ax_gemarkung.endet IS NULL \
+                    WHERE to_tsvector('german'::regconfig, \
+				        CASE WHEN ax_historischesflurstueck.gemarkungsnummer IS NULL THEN '0000' ELSE ax_historischesflurstueck.gemarkungsnummer END || ' ' || \
+				        CASE WHEN ax_historischesflurstueck.flurnummer IS NULL THEN '000' ELSE ax_historischesflurstueck.flurnummer END || ' ' || \
+				        CASE WHEN ax_historischesflurstueck.zaehler IS NULL THEN '' ELSE ax_historischesflurstueck.zaehler END || ' ' || \
+				        CASE WHEN ax_historischesflurstueck.nenner IS NULL THEN '' ELSE ax_historischesflurstueck.nenner END || ' ' || \
+        				CASE WHEN ax_historischesflurstueck.gemarkungsnummer IS NULL THEN '0000' ELSE ax_historischesflurstueck.gemarkungsnummer END || \
+        				CASE WHEN ax_historischesflurstueck.flurnummer IS NULL THEN '000' ELSE ax_historischesflurstueck.flurnummer END || \
+        				CASE WHEN ax_historischesflurstueck.zaehler IS NULL THEN '' ELSE ax_historischesflurstueck.zaehler END || \
+        				CASE WHEN ax_historischesflurstueck.nenner IS NULL THEN '' ELSE ax_historischesflurstueck.nenner END || ' ' || \
+				        CASE WHEN ax_historischesflurstueck.gemarkungsnummer IS NULL THEN '0000' ELSE lpad(ax_historischesflurstueck.gemarkungsnummer::text, 4, '0'::text) END || \
+				        CASE WHEN ax_historischesflurstueck.flurnummer IS NULL THEN '000' ELSE lpad(ax_historischesflurstueck.flurnummer::text, 3, '0'::text) END || \
+				        CASE WHEN ax_historischesflurstueck.zaehler IS NULL THEN '' ELSE lpad(ax_historischesflurstueck.zaehler::text, 5, '0'::text) END || \
+				        CASE WHEN ax_historischesflurstueck.nenner IS NULL THEN '' ELSE lpad(ax_historischesflurstueck.nenner::text, 3, '0'::text) END || ' ' || \
+        				CASE WHEN ax_historischesflurstueck.gemarkungsnummer IS NULL THEN '0000' ELSE ax_historischesflurstueck.gemarkungsnummer END || '-' || \
+        				CASE WHEN ax_historischesflurstueck.flurnummer IS NULL THEN '000' ELSE ax_historischesflurstueck.flurnummer END || '-' || \
+        				CASE WHEN ax_historischesflurstueck.zaehler IS NULL THEN '' ELSE ax_historischesflurstueck.zaehler END || '-' || \
+        				CASE WHEN ax_historischesflurstueck.nenner IS NULL THEN '' ELSE '/' || ax_historischesflurstueck.nenner END || ' ' || \
+				        CASE WHEN ax_historischesflurstueck.gemarkungsnummer IS NULL THEN '0000' ELSE lpad(ax_historischesflurstueck.gemarkungsnummer::text, 4, '0'::text) END || '-' || \
+				        CASE WHEN ax_historischesflurstueck.flurnummer IS NULL THEN '000' ELSE lpad(ax_historischesflurstueck.flurnummer::text, 3, '0'::text) END || '-' || \
+				        CASE WHEN ax_historischesflurstueck.zaehler IS NULL THEN '' ELSE lpad(ax_historischesflurstueck.zaehler::text, 5, '0'::text) END || '-' || \
+				        CASE WHEN ax_historischesflurstueck.nenner IS NULL THEN '' ELSE '/' || lpad(ax_historischesflurstueck.nenner::text, 3, '0'::text) END || ' ' || \
+				        CASE WHEN ax_gemarkung.bezeichnung IS NOT NULL THEN ax_gemarkung.bezeichnung END \
+        			) @@ to_tsquery('german', :search2)) as foo ORDER BY gemarkungsnummer,flurnummer,zaehler,nenner")
+            query.bindValue(":search1", unicode(searchString))
+            query.bindValue(":search2", unicode(searchString))
             query.exec_()
             self.treeWidget.clear()
 
@@ -105,6 +155,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                 fieldFlurnummer = query.record().indexOf("flurnummer")
                 fieldZaehler = query.record().indexOf("zaehler")
                 fieldNenner = query.record().indexOf("nenner")
+                fieldTyp = query.record().indexOf("typ")
                 while(query.next()):
                     item_gemarkung = None
                     item_flur = None
@@ -115,6 +166,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                     flurnummer = query.value(fieldFlurnummer)
                     zaehler = query.value(fieldZaehler)
                     nenner = query.value(fieldNenner)
+                    flstTyp = query.value(fieldTyp)
 
                     if(self.treeWidget.topLevelItemCount() > 0):
                         for i in range(0, self.treeWidget.topLevelItemCount()):
@@ -157,11 +209,18 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                     else:
                         item_flst = QTreeWidgetItem(item_gemarkung)
                     if(nenner == NULL):
-                        item_flst.setText(0, str(zaehler))
+                        if(flstTyp == "aktuell"):
+                            item_flst.setText(0, str(zaehler))
+                        else:
+                            item_flst.setText(0, str(zaehler) + " (historisch)")
                     else:
-                        item_flst.setText(0, str(zaehler) + " / " + str(nenner))
+                        if(flstTyp == "aktuell"):
+                            item_flst.setText(0, str(zaehler) + " / " + str(nenner))
+                        else:
+                            item_flst.setText(0, str(zaehler) + " / " + str(nenner) + " (historisch)")
                     item_flst.setText(1, flurstuecknummer)
                     item_flst.setText(2, "flurstueck")
+                    item_flst.setText(3, flstTyp)
 
                 self.showButton.setEnabled(True)
 
@@ -175,7 +234,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
 
                 # Wenn nur ein Flurstück gefunden wurd, dieses direkt anzeigen
                 if (query.size() == 1):
-                    self.addMapFlurstueck("'" + flurstuecknummer + "'")
+                    self.addMapFlurstueck("'" + flurstuecknummer + "'",flstTyp)
 
                 self.db.close()
             else:
@@ -187,7 +246,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
 
     def on_treeWidget_itemDoubleClicked(self, item):
         if(item.text(2) == "flurstueck"):
-            self.addMapFlurstueck("'" + item.text(1) + "'")
+            self.addMapFlurstueck("'" + item.text(1) + "'",item.text(3))
         if(item.text(2) == "flur"):
             self.addMapFlur(item.text(3))
         if(item.text(2) == "gemarkung"):
@@ -208,11 +267,13 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
         searchStringFlst = "";
         searchStringFlur = "";
         searchStringGemarkung = "";
+        searchTyp = "";
         for item in self.treeWidget.selectedItems():
             if(item.text(2) == "flurstueck"):
                 if(len(searchStringFlst) > 0):
                     searchStringFlst += ','
                 searchStringFlst += "'" + item.text(1) + "'"
+                searchTyp = item.text(3)
             if(item.text(2) == "flur"):
                 if(len(searchStringFlur) > 0):
                     searchStringFlur += '|'
@@ -231,18 +292,22 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
             pass
 
         if(len(searchStringFlst) > 0):
-            self.addMapFlurstueck(searchStringFlst)
+            self.addMapFlurstueck(searchStringFlst,searchTyp)
 
-    def addMapFlurstueck(self, searchString):
+    def addMapFlurstueck(self, searchString, typ = None):
         if(len(searchString) > 0):
             self.resetSuchergebnisLayer()
 
             uri = QgsDataSourceURI()
             uri.setConnection(self.dbHost, "5432", self.dbDatabasename, self.dbUsername, self.dbPassword)
-            uri.setDataSource("public", "ax_flurstueck", "wkb_geometry", "flurstueckskennzeichen IN (" +  searchString + ")")
+            if(typ == "aktuell"):
+                uri.setDataSource("public", "ax_flurstueck", "wkb_geometry", "flurstueckskennzeichen IN (" +  searchString + ")")
+            elif(typ == "historisch"):
+                uri.setDataSource("public", "ax_historischesflurstueck", "wkb_geometry", "flurstueckskennzeichen IN (" +  searchString + ")")
+
             vlayer = QgsVectorLayer(uri.uri(),  "Suchergebnis", "postgres")
 
-            self.addSuchergebnisLayer(vlayer)
+            self.addSuchergebnisLayer(vlayer,typ)
 
     def addMapFlur(self, searchString):
         if(len(searchString) > 0):
@@ -266,15 +331,20 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
 
             self.addSuchergebnisLayer(vlayer)
 
-    def addSuchergebnisLayer(self, vlayer):
+    def addSuchergebnisLayer(self, vlayer, typ = "aktuell"):
         myOpacity = 1
-        myColour = QtGui.QColor('#F08080')
+        if(typ == "historisch"):
+            myColour = QtGui.QColor('#FDBF6F')
+        else:
+            myColour = QtGui.QColor('#F08080')
         mySymbol1 = QgsSymbolV2.defaultSymbol(vlayer.geometryType())
         mySymbol1.setColor(myColour)
         mySymbol1.setAlpha(myOpacity)
         myRenderer = QgsSingleSymbolRendererV2(mySymbol1)
         vlayer.setRendererV2(myRenderer)
         vlayer.setBlendMode(13)
+        if(typ == "historisch"):
+            vlayer.rendererV2().symbol().symbolLayer(0).setBorderStyle(2)
 
         # Insert Layer at Top of Legend
         QgsMapLayerRegistry.instance().addMapLayer(vlayer, False)
@@ -316,3 +386,17 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
         self.db.setDatabaseName(self.dbDatabasename)
         self.db.setUserName(self.dbUsername)
         self.db.setPassword(self.dbPassword)
+
+    def checkPostnasSeachTable(self):
+        sql = "SELECT table_name FROM information_schema.tables WHERE table_name = 'postnas_search'";
+
+        if(hasattr(self,"db") == False):
+            self.loadDbSettings()
+            self.db.open()
+        query = QSqlQuery(self.db)
+        query.exec_(sql)
+
+        if(query.size() > 0):
+            return True
+        else:
+            return False

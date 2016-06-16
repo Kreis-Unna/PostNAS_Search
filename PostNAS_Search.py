@@ -23,6 +23,7 @@ import resources_rc
 # Import the code for the dialog
 from PostNAS_SearchDialog import PostNAS_SearchDialog
 from PostNAS_ConfDialog import PostNAS_ConfDialog
+from PostNAS_CreateFulltextindex import PostNAS_CreateFulltextindex
 import os.path
 
 class PostNAS_Search:
@@ -81,6 +82,16 @@ class PostNAS_Search:
         else:
             self.iface.addPluginToMenu("&PostNAS-Suche", self.toggleSearchAction)
 
+        self.fulltextindex = QAction(u"Volltextindex erstellen", self.iface.mainWindow())
+        self.fulltextindex.setWhatsThis(u"Erzeugt einen Volltextindex in der Datenbank um die Suche zu beschleunigen")
+        self.fulltextindex.setStatusTip(u"Erzeugt einen Volltextindex in der Datenbank um die Suche zu beschleunigen")
+        self.fulltextindex.triggered.connect(self.createFulltextindex)
+
+        if hasattr(self.iface, "addPluginToDatabaseMenu"):
+            self.iface.addPluginToDatabaseMenu("&PostNAS-Suche", self.fulltextindex)
+        else:
+            self.iface.addPluginToMenu("&PostNAS-Suche", self.fulltextindex)
+
         # Create action that will start plugin configuration
         self.action = QAction(QIcon(":/plugins/PostNAS_Search/search_24x24.png"),u"Flurstücksuche", self.iface.mainWindow())
         self.action.setCheckable(True)
@@ -108,6 +119,10 @@ class PostNAS_Search:
         dlg = PostNAS_ConfDialog(self)
         dlg.exec_()
 
+    def createFulltextindex(self):
+        dlg = PostNAS_CreateFulltextindex(self)
+        dlg.exec_()
+
     def unload(self):
         # Remove the Toolbar Icon
         self.iface.removeToolBarIcon(self.action)
@@ -118,9 +133,11 @@ class PostNAS_Search:
         if hasattr(self.iface, "removePluginDatabaseMenu"):
             self.iface.removePluginDatabaseMenu("&PostNAS-Suche", self.confAction)
             self.iface.removePluginDatabaseMenu("&PostNAS-Suche", self.toggleSearchAction)
+            self.iface.removePluginDatabaseMenu("&PostNAS-Suche", self.fulltextindex)
         else:
             self.iface.removePluginMenu("&PostNAS-Suche", self.confAction)
             self.iface.removePluginMenu("&PostNAS-Suche", self.toggleSearchAction)
+            self.iface.removePluginMenu("&PostNAS-Suche", self.fulltextindex)
 
         if self.confAction:
             self.confAction.deleteLater()
@@ -129,3 +146,7 @@ class PostNAS_Search:
         if self.toggleSearchAction:
             self.toggleSearchAction.deleteLater()
             self.toggleSearchAction = None
+
+        if self.fulltextindex:
+            self.fulltextindex.deleteLater()
+            self.fulltextindex = None

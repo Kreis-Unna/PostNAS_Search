@@ -43,6 +43,8 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
             self.loadDbSettings()
             self.db.open()
             query = QSqlQuery(self.db)
+
+            #------------------------- Flurstück suchen
             if(self.checkPostnasSeachTable() == True):
                 query.prepare(
                     "SELECT * FROM (SELECT \
@@ -148,6 +150,9 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
             self.treeWidget.clear()
 
             if(query.size() > 0):
+                item_titleFlurstuecke = QTreeWidgetItem(self.treeWidget)
+                item_titleFlurstuecke.setText(0,u"Flurstücke")
+
                 fieldNrFlurst = query.record().indexOf("flurstueckskennzeichen")
                 fieldGemarkungsnummer = query.record().indexOf("gemarkungsnummer")
                 fieldGemarkungsname = query.record().indexOf("bezeichnung")
@@ -168,13 +173,13 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                     nenner = query.value(fieldNenner)
                     flstTyp = query.value(fieldTyp)
 
-                    if(self.treeWidget.topLevelItemCount() > 0):
-                        for i in range(0, self.treeWidget.topLevelItemCount()):
-                            if(self.treeWidget.topLevelItem(i).text(1) == str(gemarkungsnummer)):
-                                item_gemarkung = self.treeWidget.topLevelItem(i)
+                    if(item_titleFlurstuecke.childCount() > 0):
+                        for i in range(0, item_titleFlurstuecke.childCount()):
+                            if(item_titleFlurstuecke.child(i).text(1) == str(gemarkungsnummer)):
+                                item_gemarkung = item_titleFlurstuecke.child(i)
                                 break
                         if(item_gemarkung is None):
-                            item_gemarkung = QTreeWidgetItem(self.treeWidget)
+                            item_gemarkung = QTreeWidgetItem(item_titleFlurstuecke)
                             if(gemarkungsname == NULL):
                                 item_gemarkung.setText(0, "Gemarkung " + str(gemarkungsnummer))
                             else:
@@ -183,7 +188,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                             item_gemarkung.setText(2, "gemarkung")
                             item_gemarkung.setText(3, str(land).zfill(2) + str(gemarkungsnummer).zfill(4))
                     else:
-                        item_gemarkung = QTreeWidgetItem(self.treeWidget)
+                        item_gemarkung = QTreeWidgetItem(item_titleFlurstuecke)
                         if(gemarkungsname == NULL):
                             item_gemarkung.setText(0, "Gemarkung " + str(gemarkungsnummer))
                         else:
@@ -222,24 +227,79 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                     item_flst.setText(2, "flurstueck")
                     item_flst.setText(3, flstTyp)
 
-                self.showButton.setEnabled(True)
+            #------------------------------------------ Adresse suchen
+            if(self.checkPostnasSeachTable() == True):
+                query.prepare("SELECT postnas_search.gml_id,ax_lagebezeichnungkatalogeintrag.bezeichnung as name_strasse,ax_lagebezeichnungmithausnummer.hausnummer,ax_gemeinde.bezeichnung as gemeinde \
+                    FROM postnas_search \
+                    JOIN ax_lagebezeichnungmithausnummer ON postnas_search.gml_id = ax_lagebezeichnungmithausnummer.gml_id \
+                    JOIN ax_lagebezeichnungkatalogeintrag ON ax_lagebezeichnungkatalogeintrag.land = ax_lagebezeichnungmithausnummer.land AND ax_lagebezeichnungkatalogeintrag.regierungsbezirk = ax_lagebezeichnungmithausnummer.regierungsbezirk AND ax_lagebezeichnungkatalogeintrag.kreis = ax_lagebezeichnungmithausnummer.kreis AND ax_lagebezeichnungkatalogeintrag.gemeinde = ax_lagebezeichnungmithausnummer.gemeinde AND ax_lagebezeichnungkatalogeintrag.lage = ax_lagebezeichnungmithausnummer.lage \
+                    JOIN ax_gemeinde ON ax_lagebezeichnungkatalogeintrag.land = ax_gemeinde.land AND ax_lagebezeichnungkatalogeintrag.regierungsbezirk = ax_gemeinde.regierungsbezirk AND ax_lagebezeichnungkatalogeintrag.kreis = ax_gemeinde.kreis AND ax_lagebezeichnungkatalogeintrag.gemeinde = ax_gemeinde.gemeinde AND ax_gemeinde.endet IS NULL \
+                    WHERE vector @@ to_tsquery('german', :search) ORDER BY gemeinde,name_strasse,regexp_replace(ax_lagebezeichnungmithausnummer.hausnummer,'[^0-9]','','g')::int,hausnummer")
 
-                # Gemarkung aufklappen, wenn nur eine vorhanden ist
-                if(self.treeWidget.topLevelItemCount() == 1):
-                    self.treeWidget.expandItem(self.treeWidget.topLevelItem(0))
+            query.bindValue(":search", unicode(searchString))
+            query.exec_()
 
-                # Flur aufklappen, wenn nur eine vorhanden ist
-                if(self.treeWidget.topLevelItem(0).childCount() == 1):
-                    self.treeWidget.expandItem(self.treeWidget.topLevelItem(0).child(0))
+            if(query.size() > 0):
+                item_titleAdresse = QTreeWidgetItem(self.treeWidget)
+                item_titleAdresse.setText(0,u"Adressen")
 
-                # Wenn nur ein Flurstück gefunden wurd, dieses direkt anzeigen
-                if (query.size() == 1):
-                    self.addMapFlurstueck("'" + flurstuecknummer + "'",flstTyp)
+                fieldGmlId = query.record().indexOf("gml_id")
+                fieldStrasseName = query.record().indexOf("name_strasse")
+                fieldHausnummer = query.record().indexOf("hausnummer")
+                fieldGemeinde = query.record().indexOf("gemeinde")
 
-                self.db.close()
+                while(query.next()):
+                    gmlId = query.value(fieldGmlId)
+                    strasseName = query.value(fieldStrasseName)
+                    hausnummer = query.value(fieldHausnummer)
+                    gemeinde = query.value(fieldGemeinde)
+
+                    itemStrasse = None
+                    itemHausnummer = None
+
+                    listGemeinden = self.treeWidget.findItems(gemeinde,Qt.MatchExactly | Qt.MatchRecursive,0)
+                    if(len(listGemeinden) > 0):
+                        itemGemeinde = listGemeinden[0]
+                    else:
+                        itemGemeinde = QTreeWidgetItem(item_titleAdresse)
+                        itemGemeinde.setText(0, unicode(gemeinde))
+
+                    for i in range(0, itemGemeinde.childCount()):
+                        if(itemGemeinde.child(i).text(0) == unicode(strasseName)):
+                            itemStrasse = itemGemeinde.child(i)
+                            break
+                    if(itemStrasse is None):
+                        itemStrasse = QTreeWidgetItem(itemGemeinde)
+                        itemStrasse.setText(0,unicode(strasseName))
+
+                    for i in range(0,itemStrasse.childCount()):
+                        if(itemStrasse.child(i).text(0) == unicode(hausnummer)):
+                            itemHausnummer = itemStrasse.child(i)
+                            break
+                    if(itemHausnummer is None):
+                        itemHausnummer = QTreeWidgetItem(itemStrasse)
+                        itemHausnummer.setText(0,unicode(hausnummer))
+                        itemHausnummer.setText(1,unicode(gmlId))
+                        itemHausnummer.setText(2,"strasse")
+
+            #----------------------------------------- Suchergebnis aufbereiten
+            if(self.treeWidget.topLevelItemCount() == 0):
+                item_empty = QTreeWidgetItem(self.treeWidget)
+                item_empty.setText(0, "Keine Ergebnisse")
             else:
-                item_gemarkung = QTreeWidgetItem(self.treeWidget)
-                item_gemarkung.setText(0, "Keine Ergebnisse")
+                self.showButton.setEnabled(True)
+                if(self.treeWidget.topLevelItemCount() == 1 and self.treeWidget.topLevelItem(0).text(0) != "Keine Ergebnisse"):
+                    self.treeWidget.expandItem(self.treeWidget.topLevelItem(0))
+                    # Gemarkung aufklappen, wenn nur eine vorhanden ist
+                    if(self.treeWidget.topLevelItem(0).childCount() == 1):
+                        self.treeWidget.expandItem(self.treeWidget.topLevelItem(0).child(0))
+                        # Flur aufklappen, wenn nur eine vorhanden ist
+                        if(self.treeWidget.topLevelItem(0).child(0).childCount() == 1):
+                            self.treeWidget.expandItem(self.treeWidget.topLevelItem(0).child(0).child(0))
+                            if(self.treeWidget.topLevelItem(0).child(0).child(0).childCount() == 1):
+                                if(self.treeWidget.topLevelItem(0).child(0).child(0).child(0).text(2) == "flurstueck"):
+                                    self.addMapFlurstueck("'" + self.treeWidget.topLevelItem(0).child(0).child(0).child(0).text(1) + "'",self.treeWidget.topLevelItem(0).child(0).child(0).child(0).text(3))
+            self.db.close()
         else:
             self.treeWidget.clear()
         QApplication.setOverrideCursor(Qt.ArrowCursor)
@@ -251,6 +311,8 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
             self.addMapFlur(item.text(3))
         if(item.text(2) == "gemarkung"):
             self.addMapGemarkung(item.text(3))
+        if(item.text(2) == "strasse"):
+            self.addMapHausnummer(item.text(1))
 
     def keyPressEvent(self, event):
         if (event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter):
@@ -294,6 +356,17 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
         if(len(searchStringFlst) > 0):
             self.addMapFlurstueck(searchStringFlst,searchTyp)
 
+    def addMapHausnummer(self,searchString):
+        if(len(searchString) > 0):
+            self.resetSuchergebnisLayer()
+            uri = QgsDataSourceURI()
+            uri.setConnection(self.dbHost, "5432", self.dbDatabasename, self.dbUsername, self.dbPassword)
+            uri.setDataSource("public", "ap_pto", "wkb_geometry","\'" + searchString + "\'=ANY(\"dientzurdarstellungvon\")")
+            vlayer = QgsVectorLayer(uri.uri(),  "Suchergebnis", "postgres")
+
+            self.addSuchergebnisLayer(vlayer,"strasse")
+
+
     def addMapFlurstueck(self, searchString, typ = None):
         if(len(searchString) > 0):
             self.resetSuchergebnisLayer()
@@ -332,19 +405,22 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
             self.addSuchergebnisLayer(vlayer)
 
     def addSuchergebnisLayer(self, vlayer, typ = "aktuell"):
-        myOpacity = 1
+        symbol = QgsSymbolV2.defaultSymbol(vlayer.geometryType())
+        symbol.setAlpha(1)
+
         if(typ == "historisch"):
             myColour = QtGui.QColor('#FDBF6F')
         else:
             myColour = QtGui.QColor('#F08080')
-        mySymbol1 = QgsSymbolV2.defaultSymbol(vlayer.geometryType())
-        mySymbol1.setColor(myColour)
-        mySymbol1.setAlpha(myOpacity)
-        myRenderer = QgsSingleSymbolRendererV2(mySymbol1)
+        symbol.setColor(myColour)
+
+        myRenderer = QgsSingleSymbolRendererV2(symbol)
         vlayer.setRendererV2(myRenderer)
         vlayer.setBlendMode(13)
         if(typ == "historisch"):
             vlayer.rendererV2().symbol().symbolLayer(0).setBorderStyle(2)
+        elif(typ == "strasse"):
+            vlayer.rendererV2().symbol().symbolLayer(0).setSize(10)
 
         # Insert Layer at Top of Legend
         QgsMapLayerRegistry.instance().addMapLayer(vlayer, False)

@@ -42,6 +42,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
             self.loadDbSettings()
             self.db.open()
             query = QSqlQuery(self.db)
+            self.treeWidget.clear()
 
             #------------------------- Flurstück suchen
             searchStringFlurstueck = searchString.replace(" ", " & ")
@@ -144,8 +145,6 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
 				        CASE WHEN ax_gemarkung.bezeichnung IS NOT NULL THEN ax_gemarkung.bezeichnung END \
         			) @@ to_tsquery('german', '" + unicode(searchStringFlurstueck) + "')) as foo ORDER BY gemarkungsnummer,flurnummer,zaehler,nenner"
             query.exec_(sqlFlurstueck)
-
-            self.treeWidget.clear()
 
             if(query.size() > 0):
                 item_titleFlurstuecke = QTreeWidgetItem(self.treeWidget)
@@ -308,6 +307,8 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                             if(self.treeWidget.topLevelItem(0).child(0).child(0).childCount() == 1):
                                 if(self.treeWidget.topLevelItem(0).child(0).child(0).child(0).text(2) == "flurstueck"):
                                     self.addMapFlurstueck("'" + self.treeWidget.topLevelItem(0).child(0).child(0).child(0).text(1) + "'",self.treeWidget.topLevelItem(0).child(0).child(0).child(0).text(3))
+                                if(self.treeWidget.topLevelItem(0).child(0).child(0).child(0).text(2) == "strasse"):
+                                    self.addMapHausnummer("'" + self.treeWidget.topLevelItem(0).child(0).child(0).child(0).text(1) + "'")
             self.db.close()
         else:
             self.treeWidget.clear()

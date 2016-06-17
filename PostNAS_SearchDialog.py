@@ -323,7 +323,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
         if(item.text(2) == "gemarkung"):
             self.addMapGemarkung(item.text(3))
         if(item.text(2) == "strasse"):
-            self.addMapHausnummer(item.text(1))
+            self.addMapHausnummer("'" + item.text(1) + "'")
 
     def keyPressEvent(self, event):
         if (event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter):

@@ -16,8 +16,6 @@
  ***************************************************************************/
 """
 
-import os
-
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtSql import *
@@ -25,6 +23,7 @@ from PyQt4 import QtGui, uic, QtCore
 from qgis.core import *
 import qgis.core
 from PostNAS_SearchDialogBase import Ui_PostNAS_SearchDialogBase
+import time
 
 class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
     def __init__(self, parent=None,  iface=None):
@@ -37,7 +36,6 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
 
     def on_lineEdit_returnPressed(self):
         searchString = self.lineEdit.text()
-        searchString = searchString.replace(" ", " & ")
         QApplication.setOverrideCursor(Qt.WaitCursor)
         if(len(searchString) > 0):
             self.loadDbSettings()
@@ -144,9 +142,11 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
 				        CASE WHEN ax_historischesflurstueck.nenner IS NULL THEN '' ELSE '/' || lpad(ax_historischesflurstueck.nenner::text, 3, '0'::text) END || ' ' || \
 				        CASE WHEN ax_gemarkung.bezeichnung IS NOT NULL THEN ax_gemarkung.bezeichnung END \
         			) @@ to_tsquery('german', :search2)) as foo ORDER BY gemarkungsnummer,flurnummer,zaehler,nenner")
-            query.bindValue(":search1", unicode(searchString))
-            query.bindValue(":search2", unicode(searchString))
+            searchStringFlurstueck = searchString.replace(" ", " & ")
+            query.bindValue(":search1", unicode(searchStringFlurstueck))
+            query.bindValue(":search2", unicode(searchStringFlurstueck))
             query.exec_()
+
             self.treeWidget.clear()
 
             if(query.size() > 0):
@@ -235,8 +235,19 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                     JOIN ax_lagebezeichnungkatalogeintrag ON ax_lagebezeichnungkatalogeintrag.land = ax_lagebezeichnungmithausnummer.land AND ax_lagebezeichnungkatalogeintrag.regierungsbezirk = ax_lagebezeichnungmithausnummer.regierungsbezirk AND ax_lagebezeichnungkatalogeintrag.kreis = ax_lagebezeichnungmithausnummer.kreis AND ax_lagebezeichnungkatalogeintrag.gemeinde = ax_lagebezeichnungmithausnummer.gemeinde AND ax_lagebezeichnungkatalogeintrag.lage = ax_lagebezeichnungmithausnummer.lage \
                     JOIN ax_gemeinde ON ax_lagebezeichnungkatalogeintrag.land = ax_gemeinde.land AND ax_lagebezeichnungkatalogeintrag.regierungsbezirk = ax_gemeinde.regierungsbezirk AND ax_lagebezeichnungkatalogeintrag.kreis = ax_gemeinde.kreis AND ax_lagebezeichnungkatalogeintrag.gemeinde = ax_gemeinde.gemeinde AND ax_gemeinde.endet IS NULL \
                     WHERE vector @@ to_tsquery('german', :search) ORDER BY gemeinde,name_strasse,regexp_replace(ax_lagebezeichnungmithausnummer.hausnummer,'[^0-9]','','g')::int,hausnummer")
+            else:
+                query.prepare("SELECT ax_lagebezeichnungmithausnummer.gml_id,ax_lagebezeichnungkatalogeintrag.bezeichnung as name_strasse,ax_lagebezeichnungmithausnummer.hausnummer,ax_gemeinde.bezeichnung as gemeinde \
+                    FROM ax_lagebezeichnungmithausnummer \
+                    JOIN ax_lagebezeichnungkatalogeintrag ON ax_lagebezeichnungkatalogeintrag.land = ax_lagebezeichnungmithausnummer.land AND ax_lagebezeichnungkatalogeintrag.regierungsbezirk = ax_lagebezeichnungmithausnummer.regierungsbezirk AND ax_lagebezeichnungkatalogeintrag.kreis = ax_lagebezeichnungmithausnummer.kreis AND ax_lagebezeichnungkatalogeintrag.gemeinde = ax_lagebezeichnungmithausnummer.gemeinde AND ax_lagebezeichnungkatalogeintrag.lage = ax_lagebezeichnungmithausnummer.lage \
+                    JOIN ax_gemeinde ON ax_lagebezeichnungkatalogeintrag.land = ax_gemeinde.land AND ax_lagebezeichnungkatalogeintrag.regierungsbezirk = ax_gemeinde.regierungsbezirk AND ax_lagebezeichnungkatalogeintrag.kreis = ax_gemeinde.kreis AND ax_lagebezeichnungkatalogeintrag.gemeinde = ax_gemeinde.gemeinde AND ax_gemeinde.endet IS NULL \
+                    WHERE to_tsvector('german', ax_lagebezeichnungkatalogeintrag.bezeichnung || ' ' || reverse(ax_lagebezeichnungkatalogeintrag.bezeichnung::text) || ' ' || ax_lagebezeichnungmithausnummer.hausnummer) @@ to_tsquery('german', :search) ORDER BY gemeinde,name_strasse,regexp_replace(ax_lagebezeichnungmithausnummer.hausnummer,'[^0-9]','','g')::int,hausnummer")
+            searchStringAdresse = searchString.replace(" ", ":* & ") + ":*"
+            if(len(''.join([i for i in searchString if not i.isdigit()])) > 0):
+                searchStringAdresse = searchStringAdresse + " | " + unicode((''.join([i for i in searchString if not i.isdigit()])).strip()[::-1]).replace(" ", ":* & ") + ":*"
+                if(len(''.join([i for i in searchString if i.isdigit()])) > 0):
+                    searchStringAdresse = searchStringAdresse + " & " + unicode((''.join([i for i in searchString if i.isdigit()]))).replace(" ", ":* & ")
 
-            query.bindValue(":search", unicode(searchString))
+            query.bindValue(":search", unicode(searchStringAdresse))
             query.exec_()
 
             if(query.size() > 0):
@@ -329,6 +340,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
         searchStringFlst = "";
         searchStringFlur = "";
         searchStringGemarkung = "";
+        searchStringStrasse = "";
         searchTyp = "";
         for item in self.treeWidget.selectedItems():
             if(item.text(2) == "flurstueck"):
@@ -344,6 +356,10 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                 if(len(searchStringGemarkung) > 0):
                     searchStringGemarkung += '|'
                 searchStringGemarkung += item.text(3)
+            if(item.text(2) == "strasse"):
+                if(len(searchStringStrasse) >0):
+                    searchStringStrasse += ','
+                searchStringStrasse += "'" + item.text(1) + "'"
 
         if(len(searchStringGemarkung) > 0):
             self.addMapGemarkung(searchStringGemarkung)
@@ -356,12 +372,15 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
         if(len(searchStringFlst) > 0):
             self.addMapFlurstueck(searchStringFlst,searchTyp)
 
+        if(len(searchStringStrasse) > 0):
+            self.addMapHausnummer(searchStringStrasse)
+
     def addMapHausnummer(self,searchString):
         if(len(searchString) > 0):
             self.resetSuchergebnisLayer()
             uri = QgsDataSourceURI()
             uri.setConnection(self.dbHost, "5432", self.dbDatabasename, self.dbUsername, self.dbPassword)
-            uri.setDataSource("public", "ap_pto", "wkb_geometry","\'" + searchString + "\'=ANY(\"dientzurdarstellungvon\")")
+            uri.setDataSource("public", "ap_pto", "wkb_geometry","ARRAY[" + searchString + "]::character(16)[] @> dientzurdarstellungvon")
             vlayer = QgsVectorLayer(uri.uri(),  "Suchergebnis", "postgres")
 
             self.addSuchergebnisLayer(vlayer,"strasse")

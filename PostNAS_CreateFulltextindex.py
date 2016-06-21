@@ -7,16 +7,16 @@
     copyright          : (C) 2016 by Kreis-Unna
     email                : marvin.brandt@kreis-unna.de
  ***************************************************************************
- *                                                                                                                                    *
- *   This program is free software; you can redistribute it and/or modify                                       *
- *   it under the terms of the GNU General Public License as published by                                      *
- *   the Free Software Foundation; either version 2 of the License, or                                          *
- *   (at your option) any later version.                                                                                    *
- *                                                                                                                                    *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
  ***************************************************************************/
 """
 
-import os, locale
+import os
 from PyQt4 import QtGui, uic
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -25,7 +25,6 @@ from PyQt4.QtSql import *
 class PostNAS_CreateFulltextindex(QtGui.QDialog):
     def __init__(self, iface, parent=None):
         super(PostNAS_CreateFulltextindex, self).__init__(parent)
-        locale.setlocale(locale.LC_ALL, 'german')
         self.dialog = uic.loadUi(os.path.join(os.path.dirname(__file__), 'PostNAS_FulltextindexInProgress.ui'))
 
     def exec_(self):

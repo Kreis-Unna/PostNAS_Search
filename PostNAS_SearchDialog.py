@@ -7,12 +7,12 @@
     copyright          : (C) 2016 by Kreis-Unna
     email                : marvin.brandt@kreis-unna.de
  ***************************************************************************
- *                                                                                                                                    *
- *   This program is free software; you can redistribute it and/or modify                                       *
- *   it under the terms of the GNU General Public License as published by                                      *
- *   the Free Software Foundation; either version 2 of the License, or                                          *
- *   (at your option) any later version.                                                                                    *
- *                                                                                                                                    *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
  ***************************************************************************/
 """
 
@@ -349,6 +349,91 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                         itemHausnummer.setText(1,unicode(gmlId))
                         itemHausnummer.setText(2,"strasse")
 
+            #------------------------------------------ Eigentümer suchen
+            searchStringEigentuemer = searchString.replace(" ", ":* & ") + ":*"
+            searchStringEigentuemer += " | " + searchString[::-1].replace(" ", ":* & ") + ":*"
+            if(self.checkPostnasSeachTable() == True):
+                sqlEigentuemer = "SELECT * FROM (SELECT ax_person.gml_id,nachnameoderfirma,vorname,geburtsname,namensbestandteil,akademischergrad,ax_flurstueck.land,gemarkungsnummer,flurnummer,ax_flurstueck.zaehler,ax_flurstueck.nenner,ax_flurstueck.flurstueckskennzeichen \
+                                FROM postnas_search \
+                                JOIN ax_person ON ax_person.gml_id = postnas_search.gml_id \
+                                JOIN ax_namensnummer ON ax_person.gml_id = ax_namensnummer.benennt AND ax_namensnummer.endet IS NULL \
+                                JOIN ax_buchungsblatt ON ax_buchungsblatt.gml_id = ax_namensnummer.istbestandteilvon AND ax_buchungsblatt.endet IS NULL \
+                                JOIN ax_buchungsstelle ON ax_buchungsstelle.istbestandteilvon = ax_buchungsblatt.gml_id AND ax_buchungsstelle.endet IS NULL \
+                                JOIN ax_flurstueck ON ax_flurstueck.istgebucht = ax_buchungsstelle.gml_id AND ax_flurstueck.endet IS NULL \
+                                WHERE vector @@ to_tsquery('german','"+ searchStringAdresse +"') \
+                                UNION \
+                                SELECT ax_person.gml_id,nachnameoderfirma,vorname,geburtsname,namensbestandteil,akademischergrad,ax_flurstueck.land,gemarkungsnummer,flurnummer,ax_flurstueck.zaehler,ax_flurstueck.nenner,ax_flurstueck.flurstueckskennzeichen \
+                                FROM postnas_search \
+                                JOIN ax_person ON ax_person.gml_id = postnas_search.gml_id AND ax_person.endet IS NULL \
+                                JOIN ax_namensnummer ON ax_person.gml_id = ax_namensnummer.benennt AND ax_namensnummer.endet IS NULL \
+                                JOIN ax_buchungsblatt ON ax_buchungsblatt.gml_id = ax_namensnummer.istbestandteilvon AND ax_buchungsblatt.endet IS NULL \
+                                JOIN ax_buchungsstelle ON ax_buchungsstelle.istbestandteilvon = ax_buchungsblatt.gml_id AND ax_buchungsstelle.endet IS NULL \
+                                JOIN ax_buchungsstelle as ax_buchungsstelle_2 ON ax_buchungsstelle_2.gml_id = ANY(ax_buchungsstelle.an) AND ax_buchungsstelle_2.endet IS NULL \
+                                JOIN ax_flurstueck ON ax_flurstueck.istgebucht = ax_buchungsstelle_2.gml_id AND ax_flurstueck.endet IS NULL \
+                                WHERE vector @@ to_tsquery('german','"+ searchStringAdresse +"')) as foo \
+                                ORDER BY CASE WHEN akademischergrad IS NOT NULL THEN akademischergrad ELSE '' END || CASE WHEN namensbestandteil IS NOT NULL THEN namensbestandteil ELSE '' END || nachnameoderfirma || CASE WHEN vorname IS NOT NULL THEN vorname ELSE '' END || CASE WHEN geburtsname IS NOT NULL THEN geburtsname ELSE '' END, land, gemarkungsnummer,flurnummer,zaehler,nenner"
+            else:
+                sqlEigentuemer = ""
+
+            query.exec_(sqlEigentuemer)
+
+            if(query.size() > 0):
+                item_titleEigentuemer = QTreeWidgetItem(self.treeWidget)
+                item_titleEigentuemer.setText(0,u"Eigentümer")
+
+                while(query.next()):
+                    gmlId = query.value(query.record().indexOf("gml_id"))
+                    nachnameOderFirma = query.value(query.record().indexOf("nachnameoderfirma"))
+                    vorname = query.value(query.record().indexOf("vorname"))
+                    geburtsname = query.value(query.record().indexOf("geburtsname"))
+                    namensbestandteil = query.value(query.record().indexOf("namensbestandteil"))
+                    akademischergrad = query.value(query.record().indexOf("akademischergrad"))
+                    land = query.value(query.record().indexOf("land"))
+                    gemarkungsnummer = query.value(query.record().indexOf("gemarkungsnummer"))
+                    flurnummer = query.value(query.record().indexOf("flurnummer"))
+                    zaehler = query.value(query.record().indexOf("zaehler"))
+                    nenner = query.value(query.record().indexOf("nenner"))
+                    flurstueckskennzeichen = query.value(query.record().indexOf("flurstueckskennzeichen"))
+
+                    itemPerson = None
+                    itemFlurstueck = None
+
+                    person = ""
+                    if(akademischergrad != None):
+                        person += akademischergrad + " "
+                    if(namensbestandteil != None):
+                        person += namensbestandteil + " "
+                    person += nachnameOderFirma
+                    if(vorname != None):
+                        person += ", " + vorname
+                    if(geburtsname != None):
+                        person += " (geb. " + geburtsname + ")"
+
+                    listPerson = self.treeWidget.findItems(person,Qt.MatchExactly | Qt.MatchRecursive,0)
+                    if(len(listPerson) > 0):
+                        itemPerson = listPerson[0]
+                    else:
+                        itemPerson = QTreeWidgetItem(item_titleEigentuemer)
+                        itemPerson.setText(0, unicode(person))
+                        itemPerson.setText(1, unicode(gmlId))
+                        itemPerson.setText(2, unicode("person"))
+
+                    flurstueck = unicode(land).zfill(2) + unicode(gemarkungsnummer).zfill(4) + '-' + unicode(flurnummer).zfill(3) + '-' + unicode(zaehler).zfill(5)
+                    if(nenner != None):
+                        flurstueck += "/" + unicode(nenner).zfill(3)
+
+                    for i in range(0, itemPerson.childCount()):
+                        if(itemPerson.child(i).text(0) == flurstueck):
+                            itemFlurstueck = itemPerson.child(i)
+                            break
+                    if(itemFlurstueck is None):
+                        itemFlurstueck = QTreeWidgetItem(itemPerson)
+                        itemFlurstueck.setText(0,unicode(flurstueck))
+                        itemFlurstueck.setText(1, flurstueckskennzeichen)
+                        itemFlurstueck.setText(2, "flurstueck")
+                        itemFlurstueck.setText(3, "aktuell")
+
+
             self.db.close()
             #----------------------------------------- Suchergebnis aufbereiten
             if(self.treeWidget.topLevelItemCount() == 0):
@@ -358,10 +443,10 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                 self.showButton.setEnabled(True)
                 if(self.treeWidget.topLevelItemCount() == 1 and self.treeWidget.topLevelItem(0).text(0) != "Keine Ergebnisse"):
                     self.treeWidget.expandItem(self.treeWidget.topLevelItem(0))
-                    # Gemarkung aufklappen, wenn nur eine vorhanden ist
                     if(self.treeWidget.topLevelItem(0).childCount() == 1):
                         self.treeWidget.expandItem(self.treeWidget.topLevelItem(0).child(0))
-                        # Flur aufklappen, wenn nur eine vorhanden ist
+                        if(self.treeWidget.topLevelItem(0).text(0) == u"Eigentümer"):
+                            self.addMapPerson("'" + self.treeWidget.topLevelItem(0).child(0).text(1) + "'")
                         if(self.treeWidget.topLevelItem(0).child(0).childCount() == 1):
                             self.treeWidget.expandItem(self.treeWidget.topLevelItem(0).child(0).child(0))
                             if(self.treeWidget.topLevelItem(0).child(0).child(0).childCount() == 1):
@@ -382,6 +467,8 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
             self.addMapGemarkung(item.text(3))
         if(item.text(2) == "strasse"):
             self.addMapHausnummer("'" + item.text(1) + "'")
+        if(item.text(2) == "person"):
+            self.addMapPerson("'" + item.text(1) + "'")
 
     def keyPressEvent(self, event):
         if (event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter):
@@ -399,7 +486,9 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
         searchStringFlur = "";
         searchStringGemarkung = "";
         searchStringStrasse = "";
+        searchStringPerson = "";
         searchTyp = "";
+
         for item in self.treeWidget.selectedItems():
             if(item.text(2) == "flurstueck"):
                 if(len(searchStringFlst) > 0):
@@ -418,6 +507,10 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                 if(len(searchStringStrasse) >0):
                     searchStringStrasse += ','
                 searchStringStrasse += "'" + item.text(1) + "'"
+            if(item.text(2) == "person"):
+                if(len(searchStringPerson) > 0):
+                    searchStringPerson += ','
+                searchStringPerson += "'" + item.text(1) + "'"
 
         if(len(searchStringGemarkung) > 0):
             self.addMapGemarkung(searchStringGemarkung)
@@ -433,6 +526,18 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
         if(len(searchStringStrasse) > 0):
             self.addMapHausnummer(searchStringStrasse)
 
+        if(len(searchStringPerson) > 0):
+            self.addMapPerson(searchStringPerson)
+
+    def addMapPerson(self,personGmlId):
+        sqlLayer = "(SELECT row_number() over () as id,* FROM (SELECT nachnameoderfirma,vorname,geburtsname,namensbestandteil,akademischergrad,ax_flurstueck.land,gemarkungsnummer,flurnummer,ax_flurstueck.zaehler,ax_flurstueck.nenner,ax_flurstueck.flurstueckskennzeichen,ax_flurstueck.wkb_geometry FROM ax_person JOIN ax_namensnummer ON ax_person.gml_id = ax_namensnummer.benennt AND ax_namensnummer.endet IS NULL JOIN ax_buchungsblatt ON ax_buchungsblatt.gml_id = ax_namensnummer.istbestandteilvon AND ax_buchungsblatt.endet IS NULL JOIN ax_buchungsstelle ON ax_buchungsstelle.istbestandteilvon = ax_buchungsblatt.gml_id AND ax_buchungsstelle.endet IS NULL JOIN ax_flurstueck ON ax_flurstueck.istgebucht = ax_buchungsstelle.gml_id AND ax_flurstueck.endet IS NULL WHERE ax_person.gml_id IN ("+personGmlId+") UNION SELECT nachnameoderfirma,vorname,geburtsname,namensbestandteil,akademischergrad,ax_flurstueck.land,gemarkungsnummer,flurnummer,ax_flurstueck.zaehler,ax_flurstueck.nenner,ax_flurstueck.flurstueckskennzeichen,ax_flurstueck.wkb_geometry FROM ax_person JOIN ax_namensnummer ON ax_person.gml_id = ax_namensnummer.benennt AND ax_namensnummer.endet IS NULL JOIN ax_buchungsblatt ON ax_buchungsblatt.gml_id = ax_namensnummer.istbestandteilvon AND ax_buchungsblatt.endet IS NULL JOIN ax_buchungsstelle ON ax_buchungsstelle.istbestandteilvon = ax_buchungsblatt.gml_id AND ax_buchungsstelle.endet IS NULL JOIN ax_buchungsstelle as ax_buchungsstelle_2 ON ax_buchungsstelle_2.gml_id = ANY(ax_buchungsstelle.an) AND ax_buchungsstelle_2.endet IS NULL JOIN ax_flurstueck ON ax_flurstueck.istgebucht = ax_buchungsstelle_2.gml_id AND ax_flurstueck.endet IS NULL WHERE ax_person.gml_id IN ("+personGmlId+") AND ax_person.endet IS NULL) as foo)"
+        self.resetSuchergebnisLayer()
+        uri = QgsDataSourceURI()
+        uri.setConnection(self.dbHost, "5432", self.dbDatabasename, self.dbUsername, self.dbPassword)
+        uri.setDataSource("", sqlLayer, "wkb_geometry","","id")
+        vlayer = QgsVectorLayer(uri.uri(),  "Suchergebnis", "postgres")
+        self.addSuchergebnisLayer(vlayer)
+
     def addMapHausnummer(self,searchString):
         if(len(searchString) > 0):
             self.resetSuchergebnisLayer()
@@ -442,7 +547,6 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
             vlayer = QgsVectorLayer(uri.uri(),  "Suchergebnis", "postgres")
 
             self.addSuchergebnisLayer(vlayer,"strasse")
-
 
     def addMapFlurstueck(self, searchString, typ = None):
         if(len(searchString) > 0):

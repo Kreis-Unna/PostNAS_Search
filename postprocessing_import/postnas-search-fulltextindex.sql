@@ -120,4 +120,12 @@ BEGIN;
 		WHERE ax_lagebezeichnungkatalogeintrag.endet IS NULL
 	);
 	
+	/* Eigentümer */
+	INSERT INTO postnas_search (
+		SELECT 
+			gml_id,
+			to_tsvector('german',CASE WHEN nachnameoderfirma IS NOT NULL THEN nachnameoderfirma || ' ' || reverse(nachnameoderfirma) || ' ' ELSE '' END || CASE WHEN vorname IS NOT NULL THEN vorname || ' ' || reverse(vorname) || ' ' ELSE '' END || CASE WHEN geburtsname IS NOT NULL THEN geburtsname || ' ' || reverse(geburtsname) ELSE '' END || CASE WHEN namensbestandteil IS NOT NULL THEN namensbestandteil || ' ' || reverse(namensbestandteil) ELSE '' END || CASE WHEN akademischergrad IS NOT NULL THEN akademischergrad || ' ' || reverse(akademischergrad) ELSE '' END) 
+		FROM ax_person 
+		WHERE endet IS NULL
+	);
 COMMIT;

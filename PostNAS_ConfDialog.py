@@ -3,16 +3,16 @@
 /***************************************************************************
     PostNAS_Search
     -------------------
-    Date                : April 2015
-    copyright          : (C) 2015 by Kreis-Unna
+    Date                : June 2016
+    copyright          : (C) 2016 by Kreis-Unna
     email                : marvin.brandt@kreis-unna.de
  ***************************************************************************
- *                                                                                                                                    *
- *   This program is free software; you can redistribute it and/or modify                                       *
- *   it under the terms of the GNU General Public License as published by                                      *
- *   the Free Software Foundation; either version 2 of the License, or                                          *
- *   (at your option) any later version.                                                                                    *
- *                                                                                                                                    *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
  ***************************************************************************/
 """
 

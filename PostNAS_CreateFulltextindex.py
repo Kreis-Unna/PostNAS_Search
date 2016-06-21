@@ -22,19 +22,24 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtSql import *
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'PostNAS_FulltextindexInProgress.ui'))
-
-class PostNAS_CreateFulltextindex(QtGui.QDialog, FORM_CLASS):
+class PostNAS_CreateFulltextindex(QtGui.QDialog):
     def __init__(self, iface, parent=None):
         super(PostNAS_CreateFulltextindex, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowTitle(u'Volltextindex')
         locale.setlocale(locale.LC_ALL, 'german')
+        self.dialog = uic.loadUi(os.path.join(os.path.dirname(__file__), 'PostNAS_FulltextindexInProgress.ui'))
 
     def exec_(self):
-        self.open()
+        self.openDialog()
         self.createFulltextindex()
-        self.close()
+        self.coloseDialog()
+
+    def openDialog(self):
+        self.dialog.setModal(True)
+        self.dialog.show()
+        QApplication.processEvents()
+
+    def coloseDialog(self):
+        self.dialog.close()
 
     def createFulltextindex(self):
         if(self.checkPostnasSeachTable() == False):

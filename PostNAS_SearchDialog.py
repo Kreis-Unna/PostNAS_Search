@@ -290,7 +290,6 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                 searchStringAdresse += " | " + unicode((''.join([i for i in searchString if not i.isdigit()])).strip()[::-1]).replace(" ", ":* & ") + ":* "
                 if(len(''.join([i for i in searchString if i.isdigit()])) > 0):
                     searchStringAdresse = searchStringAdresse + " & " + unicode((''.join([i for i in searchString if i.isdigit()]))).replace(" ", ":* & ")
-            QMessageBox.information(None,"SEARCH",str(searchStringAdresse))
             if(self.checkPostnasSeachTable() == True):
                 sqlAdresse = "SELECT postnas_search.gml_id,ax_lagebezeichnungkatalogeintrag.bezeichnung as name_strasse,ax_lagebezeichnungmithausnummer.hausnummer,ax_gemeinde.bezeichnung as gemeinde \
                     FROM postnas_search \

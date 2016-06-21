@@ -70,10 +70,26 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                              ax_historischesflurstueck.zaehler::integer,\
                              ax_historischesflurstueck.nenner::integer,\
                              ax_historischesflurstueck.flurstueckskennzeichen,\
-                             'historisch' AS typ FROM postnas_search \
+                             'historisch' AS typ \
+                        FROM postnas_search \
                         JOIN ax_historischesflurstueck on postnas_search.gml_id = ax_historischesflurstueck.gml_id AND ax_historischesflurstueck.endet IS NULL \
                         JOIN ax_gemarkung ON ax_historischesflurstueck.land::text = ax_gemarkung.land::text AND ax_historischesflurstueck.gemarkungsnummer::text = ax_gemarkung.gemarkungsnummer::text AND ax_gemarkung.endet IS NULL \
-                        WHERE vector @@ to_tsquery('german', '" + unicode(searchStringFlurstueck) + "')) as foo \
+                        WHERE vector @@ to_tsquery('german', '" + unicode(searchStringFlurstueck) + "') \
+                        UNION \
+                        SELECT \
+                             ax_historischesflurstueckohneraumbezug.gemarkungsnummer::integer, \
+                             ax_gemarkung.bezeichnung, \
+                             ax_historischesflurstueckohneraumbezug.land, \
+                             ax_historischesflurstueckohneraumbezug.flurnummer::integer, \
+                             ax_historischesflurstueckohneraumbezug.zaehler::integer, \
+                             ax_historischesflurstueckohneraumbezug.nenner::integer, \
+                             ax_historischesflurstueckohneraumbezug.flurstueckskennzeichen, \
+                             'historisch_ungenau' AS typ \
+                        FROM postnas_search \
+                        JOIN ax_historischesflurstueckohneraumbezug on postnas_search.gml_id = ax_historischesflurstueckohneraumbezug.gml_id AND ax_historischesflurstueckohneraumbezug.endet IS NULL \
+                        JOIN ax_gemarkung ON ax_historischesflurstueckohneraumbezug.land::text = ax_gemarkung.land::text AND ax_historischesflurstueckohneraumbezug.gemarkungsnummer::text = ax_gemarkung.gemarkungsnummer::text AND ax_gemarkung.endet IS NULL \
+                        WHERE vector @@ to_tsquery('german', '" + unicode(searchStringFlurstueck) + "') \
+                        ) as foo \
                         ORDER BY gemarkungsnummer,flurnummer,zaehler,nenner"
             else:
                 sqlFlurstueck = "SELECT * FROM (SELECT \
@@ -143,7 +159,43 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
 				        CASE WHEN ax_historischesflurstueck.zaehler IS NULL THEN '' ELSE lpad(ax_historischesflurstueck.zaehler::text, 5, '0'::text) END || '-' || \
 				        CASE WHEN ax_historischesflurstueck.nenner IS NULL THEN '' ELSE '/' || lpad(ax_historischesflurstueck.nenner::text, 3, '0'::text) END || ' ' || \
 				        CASE WHEN ax_gemarkung.bezeichnung IS NOT NULL THEN ax_gemarkung.bezeichnung END \
-        			) @@ to_tsquery('german', '" + unicode(searchStringFlurstueck) + "')) as foo ORDER BY gemarkungsnummer,flurnummer,zaehler,nenner"
+        			) @@ to_tsquery('german', '" + unicode(searchStringFlurstueck) + "') \
+                    UNION \
+                    SELECT \
+                        ax_historischesflurstueckohneraumbezug.gemarkungsnummer::integer, \
+                        ax_gemarkung.bezeichnung, \
+                        ax_historischesflurstueckohneraumbezug.land, \
+                        ax_historischesflurstueckohneraumbezug.flurnummer::integer, \
+                        ax_historischesflurstueckohneraumbezug.zaehler::integer, \
+                        ax_historischesflurstueckohneraumbezug.nenner::integer, \
+                        ax_historischesflurstueckohneraumbezug.flurstueckskennzeichen, \
+                        'historisch_ungenau' AS typ \
+                    FROM ax_historischesflurstueckohneraumbezug \
+                    JOIN ax_gemarkung ON ax_historischesflurstueckohneraumbezug.land::text = ax_gemarkung.land::text AND ax_historischesflurstueckohneraumbezug.gemarkungsnummer::text = ax_gemarkung.gemarkungsnummer::text AND ax_gemarkung.endet IS NULL \
+                    WHERE to_tsvector('german'::regconfig, \
+				        CASE WHEN ax_historischesflurstueckohneraumbezug.gemarkungsnummer IS NULL THEN '0000' ELSE ax_historischesflurstueckohneraumbezug.gemarkungsnummer END || ' ' || \
+				        CASE WHEN ax_historischesflurstueckohneraumbezug.flurnummer IS NULL THEN '000' ELSE ax_historischesflurstueckohneraumbezug.flurnummer END || ' ' || \
+				        CASE WHEN ax_historischesflurstueckohneraumbezug.zaehler IS NULL THEN '' ELSE ax_historischesflurstueckohneraumbezug.zaehler END || ' ' || \
+				        CASE WHEN ax_historischesflurstueckohneraumbezug.nenner IS NULL THEN '' ELSE ax_historischesflurstueckohneraumbezug.nenner END || ' ' || \
+        				CASE WHEN ax_historischesflurstueckohneraumbezug.gemarkungsnummer IS NULL THEN '0000' ELSE ax_historischesflurstueckohneraumbezug.gemarkungsnummer END || \
+        				CASE WHEN ax_historischesflurstueckohneraumbezug.flurnummer IS NULL THEN '000' ELSE ax_historischesflurstueckohneraumbezug.flurnummer END || \
+        				CASE WHEN ax_historischesflurstueckohneraumbezug.zaehler IS NULL THEN '' ELSE ax_historischesflurstueckohneraumbezug.zaehler END || \
+        				CASE WHEN ax_historischesflurstueckohneraumbezug.nenner IS NULL THEN '' ELSE ax_historischesflurstueckohneraumbezug.nenner END || ' ' || \
+				        CASE WHEN ax_historischesflurstueckohneraumbezug.gemarkungsnummer IS NULL THEN '0000' ELSE lpad(ax_historischesflurstueckohneraumbezug.gemarkungsnummer::text, 4, '0'::text) END || \
+				        CASE WHEN ax_historischesflurstueckohneraumbezug.flurnummer IS NULL THEN '000' ELSE lpad(ax_historischesflurstueckohneraumbezug.flurnummer::text, 3, '0'::text) END || \
+				        CASE WHEN ax_historischesflurstueckohneraumbezug.zaehler IS NULL THEN '' ELSE lpad(ax_historischesflurstueckohneraumbezug.zaehler::text, 5, '0'::text) END || \
+				        CASE WHEN ax_historischesflurstueckohneraumbezug.nenner IS NULL THEN '' ELSE lpad(ax_historischesflurstueckohneraumbezug.nenner::text, 3, '0'::text) END || ' ' || \
+        				CASE WHEN ax_historischesflurstueckohneraumbezug.gemarkungsnummer IS NULL THEN '0000' ELSE ax_historischesflurstueckohneraumbezug.gemarkungsnummer END || '-' || \
+        				CASE WHEN ax_historischesflurstueckohneraumbezug.flurnummer IS NULL THEN '000' ELSE ax_historischesflurstueckohneraumbezug.flurnummer END || '-' || \
+        				CASE WHEN ax_historischesflurstueckohneraumbezug.zaehler IS NULL THEN '' ELSE ax_historischesflurstueckohneraumbezug.zaehler END || '-' || \
+        				CASE WHEN ax_historischesflurstueckohneraumbezug.nenner IS NULL THEN '' ELSE '/' || ax_historischesflurstueckohneraumbezug.nenner END || ' ' || \
+				        CASE WHEN ax_historischesflurstueckohneraumbezug.gemarkungsnummer IS NULL THEN '0000' ELSE lpad(ax_historischesflurstueckohneraumbezug.gemarkungsnummer::text, 4, '0'::text) END || '-' || \
+				        CASE WHEN ax_historischesflurstueckohneraumbezug.flurnummer IS NULL THEN '000' ELSE lpad(ax_historischesflurstueckohneraumbezug.flurnummer::text, 3, '0'::text) END || '-' || \
+				        CASE WHEN ax_historischesflurstueckohneraumbezug.zaehler IS NULL THEN '' ELSE lpad(ax_historischesflurstueckohneraumbezug.zaehler::text, 5, '0'::text) END || '-' || \
+				        CASE WHEN ax_historischesflurstueckohneraumbezug.nenner IS NULL THEN '' ELSE '/' || lpad(ax_historischesflurstueckohneraumbezug.nenner::text, 3, '0'::text) END || ' ' || \
+				        CASE WHEN ax_gemarkung.bezeichnung IS NOT NULL THEN ax_gemarkung.bezeichnung END \
+        			) @@ to_tsquery('german', '" + unicode(searchStringFlurstueck) + "') \
+        			) as foo ORDER BY gemarkungsnummer,flurnummer,zaehler,nenner"
             query.exec_(sqlFlurstueck)
 
             if(query.size() > 0):
@@ -213,11 +265,15 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                     if(nenner == NULL):
                         if(flstTyp == "aktuell"):
                             item_flst.setText(0, str(zaehler))
+                        elif(flstTyp == "historisch_ungenau"):
+                            item_flst.setText(0, str(zaehler) + " (historisch, ungenau)")
                         else:
                             item_flst.setText(0, str(zaehler) + " (historisch)")
                     else:
                         if(flstTyp == "aktuell"):
                             item_flst.setText(0, str(zaehler) + " / " + str(nenner))
+                        elif(flstTyp == "historisch_ungenau"):
+                            item_flst.setText(0, str(zaehler) + " / " + str(nenner) + " (historisch, ungenau)")
                         else:
                             item_flst.setText(0, str(zaehler) + " / " + str(nenner) + " (historisch)")
                     item_flst.setText(1, flurstuecknummer)
@@ -225,12 +281,15 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                     item_flst.setText(3, flstTyp)
 
             #------------------------------------------ Adresse suchen
-            searchStringAdresse = searchString.replace(" ", ":* & ") + ":*"
+            searchStringAdresse = unicode("")
             if(len(''.join([i for i in searchString if not i.isdigit()])) > 0):
-                searchStringAdresse = searchStringAdresse + " | " + unicode((''.join([i for i in searchString if not i.isdigit()])).strip()[::-1]).replace(" ", ":* & ") + ":*"
+                searchStringAdresse += unicode((''.join([i for i in searchString if not i.isdigit()])).strip()).replace(" ", ":* & ") + ":* "
+                if(len(searchStringAdresse) > 0 and len(''.join([i for i in searchString if i.isdigit()])) > 0):
+                    searchStringAdresse += " & "
+                searchStringAdresse += unicode((''.join([i for i in searchString if i.isdigit()])).strip()).replace(" ", " & ")
+                searchStringAdresse += " | " + unicode((''.join([i for i in searchString if not i.isdigit()])).strip()[::-1]).replace(" ", ":* & ") + ":* "
                 if(len(''.join([i for i in searchString if i.isdigit()])) > 0):
                     searchStringAdresse = searchStringAdresse + " & " + unicode((''.join([i for i in searchString if i.isdigit()]))).replace(" ", ":* & ")
-
             if(self.checkPostnasSeachTable() == True):
                 sqlAdresse = "SELECT postnas_search.gml_id,ax_lagebezeichnungkatalogeintrag.bezeichnung as name_strasse,ax_lagebezeichnungmithausnummer.hausnummer,ax_gemeinde.bezeichnung as gemeinde \
                     FROM postnas_search \
@@ -290,6 +349,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                         itemHausnummer.setText(1,unicode(gmlId))
                         itemHausnummer.setText(2,"strasse")
 
+            self.db.close()
             #----------------------------------------- Suchergebnis aufbereiten
             if(self.treeWidget.topLevelItemCount() == 0):
                 item_empty = QTreeWidgetItem(self.treeWidget)
@@ -306,17 +366,16 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                             self.treeWidget.expandItem(self.treeWidget.topLevelItem(0).child(0).child(0))
                             if(self.treeWidget.topLevelItem(0).child(0).child(0).childCount() == 1):
                                 if(self.treeWidget.topLevelItem(0).child(0).child(0).child(0).text(2) == "flurstueck"):
-                                    self.addMapFlurstueck("'" + self.treeWidget.topLevelItem(0).child(0).child(0).child(0).text(1) + "'",self.treeWidget.topLevelItem(0).child(0).child(0).child(0).text(3))
+                                    self.addMapFlurstueck(self.treeWidget.topLevelItem(0).child(0).child(0).child(0).text(1),self.treeWidget.topLevelItem(0).child(0).child(0).child(0).text(3))
                                 if(self.treeWidget.topLevelItem(0).child(0).child(0).child(0).text(2) == "strasse"):
                                     self.addMapHausnummer("'" + self.treeWidget.topLevelItem(0).child(0).child(0).child(0).text(1) + "'")
-            self.db.close()
         else:
             self.treeWidget.clear()
         QApplication.setOverrideCursor(Qt.ArrowCursor)
 
     def on_treeWidget_itemDoubleClicked(self, item):
         if(item.text(2) == "flurstueck"):
-            self.addMapFlurstueck("'" + item.text(1) + "'",item.text(3))
+            self.addMapFlurstueck(item.text(1),item.text(3))
         if(item.text(2) == "flur"):
             self.addMapFlur(item.text(3))
         if(item.text(2) == "gemarkung"):
@@ -344,8 +403,8 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
         for item in self.treeWidget.selectedItems():
             if(item.text(2) == "flurstueck"):
                 if(len(searchStringFlst) > 0):
-                    searchStringFlst += ','
-                searchStringFlst += "'" + item.text(1) + "'"
+                    searchStringFlst += "','"
+                searchStringFlst += item.text(1)
                 searchTyp = item.text(3)
             if(item.text(2) == "flur"):
                 if(len(searchStringFlur) > 0):
@@ -392,13 +451,60 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
             uri = QgsDataSourceURI()
             uri.setConnection(self.dbHost, "5432", self.dbDatabasename, self.dbUsername, self.dbPassword)
             if(typ == "aktuell"):
-                uri.setDataSource("public", "ax_flurstueck", "wkb_geometry", "flurstueckskennzeichen IN (" +  searchString + ")")
+                uri.setDataSource("public", "ax_flurstueck", "wkb_geometry", "flurstueckskennzeichen IN ('" +  searchString + "')")
             elif(typ == "historisch"):
-                uri.setDataSource("public", "ax_historischesflurstueck", "wkb_geometry", "flurstueckskennzeichen IN (" +  searchString + ")")
+                uri.setDataSource("public", "ax_historischesflurstueck", "wkb_geometry", "flurstueckskennzeichen IN ('" +  searchString + "')")
+            elif(typ == "historisch_ungenau"):
+                sqlLayer = "(SELECT row_number() over () as id, st_setsrid(st_extent(wkb_geometry),25832) as wkb_geometry FROM ax_flurstueck WHERE flurstueckskennzeichen IN (" + self.getNachfolger(searchString) + "))"
+                uri.setDataSource("", sqlLayer, "wkb_geometry","","id")
 
             vlayer = QgsVectorLayer(uri.uri(),  "Suchergebnis", "postgres")
 
             self.addSuchergebnisLayer(vlayer,typ)
+
+    def getNachfolger(self,flurstueck):
+        returnString = None
+        if(len(flurstueck.replace("'","").split(",")) > 1):
+            for f in flurstueck.replace("'","").split(","):
+                if(returnString != None):
+                    returnString += ","
+                    returnString += self.getNachfolger(f)
+                else:
+                    returnString = self.getNachfolger(f)
+            return returnString
+        else:
+            if(hasattr(self,"db") == False):
+                self.loadDbSettings()
+            else:
+                if(self.db.isOpen() == False):
+                    self.db.open()
+            queryHist = QSqlQuery(self.db)
+            queryAktuell = QSqlQuery(self.db)
+
+            sqlFlurstueckOhneRaumbezug = "SELECT flurstueckskennzeichen,array_to_string(nachfolgerflurstueckskennzeichen,',') as nachfolgerflurstueckskennzeichen FROM ax_historischesflurstueck WHERE flurstueckskennzeichen = '" + flurstueck + "' UNION SELECT flurstueckskennzeichen,array_to_string(nachfolgerflurstueckskennzeichen,',') as nachfolgerflurstueckskennzeichen FROM ax_historischesflurstueckohneraumbezug WHERE flurstueckskennzeichen = '" + flurstueck + "'";
+            sqlAktuell = "SELECT flurstueckskennzeichen,st_astext(wkb_geometry) as wkt FROM ax_flurstueck WHERE flurstueckskennzeichen = '" + flurstueck + "' AND endet IS NULL";
+
+
+            queryHist.exec_(sqlFlurstueckOhneRaumbezug)
+            if(queryHist.size() == 0):
+                queryAktuell.exec_(sqlAktuell)
+                if(queryAktuell.size() > 0):
+                    while(queryAktuell.next()):
+                        if(returnString == None):
+                            returnString = "'" + queryAktuell.value(queryAktuell.record().indexOf("flurstueckskennzeichen")) + "'"
+                        else:
+                            returnString += ",'" + queryAktuell.value(queryAktuell.record().indexOf("flurstueckskennzeichen")) + "'"
+            else:
+                while(queryHist.next()):
+                    flurstuecke = queryHist.value(queryHist.record().indexOf("nachfolgerflurstueckskennzeichen")).split(',')
+                    for f in flurstuecke:
+                        if(returnString != None):
+                            returnString += ","
+                            returnString += self.getNachfolger(f)
+                        else:
+                            returnString = self.getNachfolger(f)
+
+            return returnString
 
     def addMapFlur(self, searchString):
         if(len(searchString) > 0):
@@ -424,34 +530,35 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
 
     def addSuchergebnisLayer(self, vlayer, typ = "aktuell"):
         symbol = QgsSymbolV2.defaultSymbol(vlayer.geometryType())
-        symbol.setAlpha(1)
+        if(symbol != None):
+            symbol.setAlpha(1)
 
-        if(typ == "historisch"):
-            myColour = QtGui.QColor('#FDBF6F')
-        else:
-            myColour = QtGui.QColor('#F08080')
-        symbol.setColor(myColour)
+            if(typ == "historisch" or typ == "historisch_ungenau"):
+                myColour = QtGui.QColor('#FDBF6F')
+            else:
+                myColour = QtGui.QColor('#F08080')
+            symbol.setColor(myColour)
 
-        myRenderer = QgsSingleSymbolRendererV2(symbol)
-        vlayer.setRendererV2(myRenderer)
-        vlayer.setBlendMode(13)
-        if(typ == "historisch"):
-            vlayer.rendererV2().symbol().symbolLayer(0).setBorderStyle(2)
-        elif(typ == "strasse"):
-            vlayer.rendererV2().symbol().symbolLayer(0).setSize(10)
+            myRenderer = QgsSingleSymbolRendererV2(symbol)
+            vlayer.setRendererV2(myRenderer)
+            vlayer.setBlendMode(13)
+            if(typ == "historisch" or typ == "historisch_ungenau"):
+                vlayer.rendererV2().symbol().symbolLayer(0).setBorderStyle(2)
+            elif(typ == "strasse"):
+                vlayer.rendererV2().symbol().symbolLayer(0).setSize(10)
 
-        # Insert Layer at Top of Legend
-        QgsMapLayerRegistry.instance().addMapLayer(vlayer, False)
-        QgsProject.instance().layerTreeRoot().insertLayer(0, vlayer)
+            # Insert Layer at Top of Legend
+            QgsMapLayerRegistry.instance().addMapLayer(vlayer, False)
+            QgsProject.instance().layerTreeRoot().insertLayer(0, vlayer)
 
-        canvas = self.iface.mapCanvas()
-        if(canvas.hasCrsTransformEnabled() == True):
-            transform = QgsCoordinateTransform(vlayer.crs(), canvas.mapSettings().destinationCrs())
-            canvas.setExtent(transform.transform(vlayer.extent().buffer(50)))
-        else:
-            canvas.setExtent(vlayer.extent().buffer(50))
+            canvas = self.iface.mapCanvas()
+            if(canvas.hasCrsTransformEnabled() == True):
+                transform = QgsCoordinateTransform(vlayer.crs(), canvas.mapSettings().destinationCrs())
+                canvas.setExtent(transform.transform(vlayer.extent().buffer(50)))
+            else:
+                canvas.setExtent(vlayer.extent().buffer(50))
 
-        self.resetButton.setEnabled(True)
+            self.resetButton.setEnabled(True)
 
     def resetSuchergebnisLayer(self):
          if(len(self.map.mapLayersByName("Suchergebnis")) > 0):

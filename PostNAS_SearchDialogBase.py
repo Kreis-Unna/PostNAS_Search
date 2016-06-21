@@ -62,5 +62,3 @@ class Ui_PostNAS_SearchDialogBase(object):
         self.showButton.setText(_translate("PostNAS_SearchDialogBase", "Anzeigen", None))
         self.resetButton.setToolTip(_translate("PostNAS_SearchDialogBase", "Ergebnis löschen", None))
         self.resetButton.setText(_translate("PostNAS_SearchDialogBase", "Reset", None))
-
-import resources_rc

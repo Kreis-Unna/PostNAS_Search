@@ -48,14 +48,15 @@ class PostNAS_CreateFulltextindex(QtGui.QDialog):
         self.updateIndex()
 
     def createIndexTable(self):
-        self.sqlCreateTable = "CREATE TABLE postnas_search(gml_id character(16), vector tsvector) WITH (OIDS=FALSE);"
+        file_path = os.path.dirname(os.path.realpath(__file__)) + "/create_fulltexttable/create_table.sql"
+        sql = open(file_path).read()
 
         if(hasattr(self,"db") == False):
             self.loadDbSettings()
             if(self.db.isOpen() == False):
                 self.db.open()
         self.queryCreate = QSqlQuery(self.db)
-        self.queryCreate.exec_(self.sqlCreateTable)
+        self.queryCreate.exec_(sql)
 
         if(self.queryCreate.lastError().number() == -1):
             return True

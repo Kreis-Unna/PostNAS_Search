@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>547</width>
-    <height>350</height>
+    <width>519</width>
+    <height>557</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -28,30 +28,27 @@
   <property name="windowTitle">
    <string>PostNAS-Suche</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_2">
-   <item row="0" column="0">
-    <widget class="QGroupBox" name="groupBox">
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
       <string>Datenbankeinstellungen</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout">
+     <layout class="QGridLayout" name="gridLayout_2">
       <item row="3" column="0" colspan="2">
        <widget class="QTabWidget" name="tabWidget">
         <property name="currentIndex">
          <number>0</number>
         </property>
-        <widget class="QWidget" name="auth">
+        <widget class="QWidget" name="auth_2">
          <attribute name="title">
           <string>Authentifizierung</string>
          </attribute>
-         <layout class="QGridLayout" name="gridLayout_5">
+         <layout class="QGridLayout" name="gridLayout_6">
           <item row="0" column="0">
-           <widget class="QLabel" name="label_4">
+           <widget class="QLabel" name="label_6">
             <property name="text">
              <string>Benutzername</string>
-            </property>
-            <property name="buddy">
-             <cstring>leUID</cstring>
             </property>
            </widget>
           </item>
@@ -63,12 +60,9 @@
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QLabel" name="label_5">
+           <widget class="QLabel" name="label_9">
             <property name="text">
              <string>Passwort</string>
-            </property>
-            <property name="buddy">
-             <cstring>lePWD</cstring>
             </property>
            </widget>
           </item>
@@ -86,6 +80,13 @@
         </widget>
        </widget>
       </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Datenbankname</string>
+        </property>
+       </widget>
+      </item>
       <item row="1" column="1">
        <widget class="QLineEdit" name="lePORT">
         <property name="inputMask">
@@ -96,26 +97,20 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="QLineEdit" name="leDBNAME"/>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_11">
         <property name="text">
-         <string>Datenbankname</string>
-        </property>
-        <property name="buddy">
-         <cstring>leDBNAME</cstring>
+         <string>Host</string>
         </property>
        </widget>
       </item>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="leDBNAME"/>
+      </item>
       <item row="1" column="0">
-       <widget class="QLabel" name="label_8">
+       <widget class="QLabel" name="label_10">
         <property name="text">
          <string>Port</string>
-        </property>
-        <property name="buddy">
-         <cstring>lePORT</cstring>
         </property>
        </widget>
       </item>
@@ -126,27 +121,109 @@
         </property>
        </widget>
       </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Zugriffssteuerung</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="3" column="0" colspan="4">
+       <widget class="QTableWidget" name="userTable">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="editTriggers">
+         <set>QAbstractItemView::NoEditTriggers</set>
+        </property>
+        <property name="selectionMode">
+         <enum>QAbstractItemView::SingleSelection</enum>
+        </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
+        </property>
+        <property name="sortingEnabled">
+         <bool>true</bool>
+        </property>
+        <attribute name="horizontalHeaderHighlightSections">
+         <bool>false</bool>
+        </attribute>
+        <attribute name="verticalHeaderHighlightSections">
+         <bool>false</bool>
+        </attribute>
+        <column>
+         <property name="text">
+          <string>Benutzername</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Name, Vorname</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Berechtigung</string>
+         </property>
+        </column>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QPushButton" name="accessControlButtonAdd">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Hinzufügen</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QPushButton" name="accessControlButtonEdit">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Bearbeiten</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="2">
+       <widget class="QPushButton" name="accessControlButtonDelete">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Löschen</string>
+        </property>
+       </widget>
+      </item>
       <item row="0" column="0">
        <widget class="QLabel" name="label_7">
-        <property name="text">
-         <string>Host</string>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
-        <property name="buddy">
-         <cstring>leHOST</cstring>
+        <property name="text">
+         <string>Aktivieren</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1" colspan="3">
+       <widget class="QCheckBox" name="checkBox">
+        <property name="text">
+         <string/>
         </property>
        </widget>
       </item>
      </layout>
-     <zorder>label_8</zorder>
-     <zorder>lePORT</zorder>
-     <zorder>label_7</zorder>
-     <zorder>leHOST</zorder>
-     <zorder>leDBNAME</zorder>
-     <zorder>label</zorder>
-     <zorder>tabWidget</zorder>
     </widget>
    </item>
-   <item row="1" column="0">
+   <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -162,9 +239,6 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>leHOST</tabstop>
-  <tabstop>lePORT</tabstop>
-  <tabstop>leDBNAME</tabstop>
   <tabstop>buttonBox</tabstop>
  </tabstops>
  <resources/>

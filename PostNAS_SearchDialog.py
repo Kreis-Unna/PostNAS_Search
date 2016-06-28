@@ -16,7 +16,6 @@
  ***************************************************************************/
 """
 
-import getpass
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtSql import *
@@ -24,6 +23,7 @@ from PyQt4 import QtGui, uic, QtCore
 from qgis.core import *
 import qgis.core
 from PostNAS_SearchDialogBase import Ui_PostNAS_SearchDialogBase
+from PostNAS_AccessControl import PostNAS_AccessControl
 
 class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
     def __init__(self, parent=None,  iface=None):
@@ -35,6 +35,8 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
         self.treeWidget.setColumnCount(1)
 
         self.indexWarning = True
+
+        self.accessControl = PostNAS_AccessControl()
 
     def on_lineEdit_returnPressed(self):
         searchString = self.lineEdit.text()
@@ -88,16 +90,17 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                 item_titleAdresse.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
 
             #------------------------------------------ Eigentümer suchen
-            if(self.checkPostnasSeachTable() == True):
-                sqlEigentuemer = "SELECT gml_id FROM postnas_search WHERE vector @@ to_tsquery('german', '" + self.getSearchStringEigentuemer() + "') AND typ = 'eigentuemer'"
-            else:
-                sqlEigentuemer = "SELECT ax_person.gml_id FROM ax_person WHERE to_tsvector('german',CASE WHEN nachnameoderfirma IS NOT NULL THEN nachnameoderfirma || ' ' || reverse(nachnameoderfirma) || ' ' ELSE '' END || CASE WHEN vorname IS NOT NULL THEN vorname || ' ' || reverse(vorname) || ' ' ELSE '' END || CASE WHEN geburtsname IS NOT NULL THEN geburtsname || ' ' || reverse(geburtsname) ELSE '' END || CASE WHEN namensbestandteil IS NOT NULL THEN namensbestandteil || ' ' || reverse(namensbestandteil) ELSE '' END || CASE WHEN akademischergrad IS NOT NULL THEN akademischergrad || ' ' || reverse(akademischergrad) ELSE '' END)  @@ to_tsquery('german', '" + self.getSearchStringEigentuemer() + "') AND endet IS NULL"
-            query.exec_(sqlEigentuemer)
+            if(self.accessControl.checkAccessControlIsActive() == False or self.accessControl.checkUserHasEigentuemerAccess() == True):
+                if(self.checkPostnasSeachTable() == True):
+                    sqlEigentuemer = "SELECT gml_id FROM postnas_search WHERE vector @@ to_tsquery('german', '" + self.getSearchStringEigentuemer() + "') AND typ = 'eigentuemer'"
+                else:
+                    sqlEigentuemer = "SELECT ax_person.gml_id FROM ax_person WHERE to_tsvector('german',CASE WHEN nachnameoderfirma IS NOT NULL THEN nachnameoderfirma || ' ' || reverse(nachnameoderfirma) || ' ' ELSE '' END || CASE WHEN vorname IS NOT NULL THEN vorname || ' ' || reverse(vorname) || ' ' ELSE '' END || CASE WHEN geburtsname IS NOT NULL THEN geburtsname || ' ' || reverse(geburtsname) ELSE '' END || CASE WHEN namensbestandteil IS NOT NULL THEN namensbestandteil || ' ' || reverse(namensbestandteil) ELSE '' END || CASE WHEN akademischergrad IS NOT NULL THEN akademischergrad || ' ' || reverse(akademischergrad) ELSE '' END)  @@ to_tsquery('german', '" + self.getSearchStringEigentuemer() + "') AND endet IS NULL"
+                query.exec_(sqlEigentuemer)
 
-            if(query.size() > 0):
-                item_titleEigentuemer = QTreeWidgetItem(self.treeWidget)
-                item_titleEigentuemer.setText(0,u"Eigentümer")
-                item_titleEigentuemer.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
+                if(query.size() > 0):
+                    item_titleEigentuemer = QTreeWidgetItem(self.treeWidget)
+                    item_titleEigentuemer.setText(0,u"Eigentümer")
+                    item_titleEigentuemer.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
 
             self.db.close()
             #----------------------------------------- Suchergebnis aufbereiten

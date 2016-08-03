@@ -20,7 +20,6 @@ import getpass
 from PyQt4.QtCore import QSettings
 from PyQt4.QtSql import QSqlDatabase, QSqlQuery
 from qgis.core import *
-from PyQt4.QtGui import QMessageBox
 
 class PostNAS_AccessControl:
     def __init__(self, username = None):

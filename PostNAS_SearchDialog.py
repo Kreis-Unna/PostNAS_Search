@@ -24,6 +24,7 @@ from qgis.core import *
 import qgis.core
 from PostNAS_SearchDialogBase import Ui_PostNAS_SearchDialogBase
 from PostNAS_AccessControl import PostNAS_AccessControl
+from PostNAS_Logging import PostNAS_Logging
 
 class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
     def __init__(self, parent=None,  iface=None):
@@ -37,13 +38,16 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
         self.indexWarning = True
 
         self.accessControl = PostNAS_AccessControl()
+        self.logging = PostNAS_Logging()
 
     def on_lineEdit_returnPressed(self):
         searchString = self.lineEdit.text()
         QApplication.setOverrideCursor(Qt.WaitCursor)
         if(len(searchString) > 0):
-            self.loadDbSettings()
-            self.db.open()
+            if(hasattr(self,"db") == False):
+                self.loadDbSettings()
+            if(self.db.isOpen() == False):
+                self.db.open()
             query = QSqlQuery(self.db)
             self.treeWidget.clear()
 
@@ -137,6 +141,8 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
             self.addMapHausnummer("'" + item.text(1) + "'")
         if(item.text(2) == "person"):
             self.addMapPerson("'" + item.text(1) + "'")
+        if(item.text(2) == "personFlurstueck"):
+            self.addMapPersonFlurstueck("'" + item.text(4) + "'", "'" + item.text(5) + "'")
 
     def on_treeWidget_itemExpanded(self, item):
         QApplication.setOverrideCursor(Qt.WaitCursor)
@@ -173,8 +179,10 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
 
     def treeLoadGemarkung(self,item):
         if(item.childCount() == 0):
-            self.loadDbSettings()
-            self.db.open()
+            if(hasattr(self,"db") == False):
+                self.loadDbSettings()
+            if(self.db.isOpen() == False):
+                self.db.open()
             query = QSqlQuery(self.db)
             if(self.checkPostnasSeachTable() == True):
                 sqlGemarkung = "SELECT ax_gemarkung.bezeichnung,ax_flurstueck.gemarkungsnummer,ax_flurstueck.land \
@@ -233,8 +241,10 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
 
     def treeLoadFlur(self,item):
         if(item.childCount() == 0):
-            self.loadDbSettings()
-            self.db.open()
+            if(hasattr(self,"db") == False):
+                self.loadDbSettings()
+            if(self.db.isOpen() == False):
+                self.db.open()
             query = QSqlQuery(self.db)
             if(self.checkPostnasSeachTable() == True):
                 sqlFlur = "SELECT * FROM (SELECT ax_gemarkung.bezeichnung,ax_flurstueck.gemarkungsnummer,ax_flurstueck.flurnummer,ax_flurstueck.land \
@@ -294,8 +304,10 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
 
     def treeLoadFlurstueck(self,item,flurnummer = True):
         if(item.childCount() == 0):
-            self.loadDbSettings()
-            self.db.open()
+            if(hasattr(self,"db") == False):
+                self.loadDbSettings()
+            if(self.db.isOpen() == False):
+                self.db.open()
             query = QSqlQuery(self.db)
 
             if(self.checkPostnasSeachTable() == True):
@@ -408,8 +420,10 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
 
     def treeLoadAdresseGemeinde(self,item):
         if(item.childCount() == 0):
-            self.loadDbSettings()
-            self.db.open()
+            if(hasattr(self,"db") == False):
+                self.loadDbSettings()
+            if(self.db.isOpen() == False):
+                self.db.open()
             query = QSqlQuery(self.db)
             if(self.checkPostnasSeachTable() == True):
                 sqlGemeinde = "SELECT ax_gemeinde.bezeichnung as gemeinde FROM postnas_search \
@@ -436,8 +450,10 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
 
     def treeLoadAdresseStrasse(self,item):
         if(item.childCount() == 0):
-            self.loadDbSettings()
-            self.db.open()
+            if(hasattr(self,"db") == False):
+                self.loadDbSettings()
+            if(self.db.isOpen() == False):
+                self.db.open()
             query = QSqlQuery(self.db)
 
             if(self.checkPostnasSeachTable() == True):
@@ -465,8 +481,10 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
 
     def treeLoadAdresseHausnummer(self,item):
         if(item.childCount() == 0):
-            self.loadDbSettings()
-            self.db.open()
+            if(hasattr(self,"db") == False):
+                self.loadDbSettings()
+            if(self.db.isOpen() == False):
+                self.db.open()
             query = QSqlQuery(self.db)
             if(self.checkPostnasSeachTable() == True):
                 sqlHausnummer = "SELECT postnas_search.gml_id,ax_lagebezeichnungmithausnummer.hausnummer \
@@ -497,8 +515,10 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
 
     def treeLoadEigentuemer(self,item):
         if(item.childCount() == 0):
-            self.loadDbSettings()
-            self.db.open()
+            if(hasattr(self,"db") == False):
+                self.loadDbSettings()
+            if(self.db.isOpen() == False):
+                self.db.open()
             query = QSqlQuery(self.db)
 
             if(self.checkPostnasSeachTable() == True):
@@ -536,6 +556,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                 fieldGeburtsname = query.record().indexOf("geburtsname")
                 fieldNamensbestandteil = query.record().indexOf("namensbestandteil")
                 fieldAkademischerGrad = query.record().indexOf("akademischergrad")
+                listEigentuemer = list()
                 while(query.next()):
                     gmlId = query.value(fieldGmlID)
                     nachnameOderFirma = query.value(fieldNachnameOderFirma)
@@ -560,14 +581,18 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                     itemPerson.setText(1, unicode(gmlId))
                     itemPerson.setText(2, unicode("person"))
                     itemPerson.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
+                    listEigentuemer.append(unicode(person))
+                self.logging.logEigentuemerList(self.lineEdit.text(),listEigentuemer)
             self.db.close()
 
     def treeLoadEigentuemerFlurstuecke(self,item):
         if(item.childCount() == 0):
-            self.loadDbSettings()
-            self.db.open()
+            if(hasattr(self,"db") == False):
+                self.loadDbSettings()
+            if(self.db.isOpen() == False):
+                self.db.open()
             query = QSqlQuery(self.db)
-            sqlEigentuemerFlurstuecke = "SELECT * FROM (SELECT ax_flurstueck.land,gemarkungsnummer,flurnummer,ax_flurstueck.zaehler,ax_flurstueck.nenner,ax_flurstueck.flurstueckskennzeichen \
+            sqlEigentuemerFlurstuecke = "SELECT * FROM (SELECT ax_flurstueck.gml_id as flurstueckGmlId,ax_person.gml_id as personGmlId,ax_flurstueck.land,gemarkungsnummer,flurnummer,ax_flurstueck.zaehler,ax_flurstueck.nenner,ax_flurstueck.flurstueckskennzeichen \
             FROM ax_person \
             JOIN ax_namensnummer ON ax_person.gml_id = ax_namensnummer.benennt AND ax_namensnummer.endet IS NULL \
             JOIN ax_buchungsblatt ON ax_buchungsblatt.gml_id = ax_namensnummer.istbestandteilvon AND ax_buchungsblatt.endet IS NULL \
@@ -575,7 +600,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
             JOIN ax_flurstueck ON ax_flurstueck.istgebucht = ax_buchungsstelle.gml_id AND ax_flurstueck.endet IS NULL \
             WHERE ax_person.gml_id = '"+item.text(1)+"' \
             UNION \
-            SELECT ax_flurstueck.land,gemarkungsnummer,flurnummer,ax_flurstueck.zaehler,ax_flurstueck.nenner,ax_flurstueck.flurstueckskennzeichen \
+            SELECT ax_flurstueck.gml_id as flurstueckGmlId,ax_person.gml_id as personGmlId,ax_flurstueck.land,gemarkungsnummer,flurnummer,ax_flurstueck.zaehler,ax_flurstueck.nenner,ax_flurstueck.flurstueckskennzeichen \
             FROM ax_person \
             JOIN ax_namensnummer ON ax_person.gml_id = ax_namensnummer.benennt AND ax_namensnummer.endet IS NULL \
             JOIN ax_buchungsblatt ON ax_buchungsblatt.gml_id = ax_namensnummer.istbestandteilvon AND ax_buchungsblatt.endet IS NULL \
@@ -592,6 +617,9 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                 fieldZaehler = query.record().indexOf("zaehler")
                 fieldNenner = query.record().indexOf("nenner")
                 fieldFlurstueckskennzeichen = query.record().indexOf("flurstueckskennzeichen")
+                fieldPersonGmlId = query.record().indexOf("personGmlId")
+                fieldFlurstueckGmlId = query.record().indexOf("flurstueckGmlId")
+                listFlurstuecke = list()
                 while(query.next()):
                     land = query.value(fieldLand)
                     gemarkungsnummer = query.value(fieldGemarkungsnummer)
@@ -606,8 +634,12 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                     itemFlurstueck = QTreeWidgetItem(item)
                     itemFlurstueck.setText(0,unicode(flurstueck))
                     itemFlurstueck.setText(1, flurstueckskennzeichen)
-                    itemFlurstueck.setText(2, "flurstueck")
+                    itemFlurstueck.setText(2, "personFlurstueck")
                     itemFlurstueck.setText(3, "flurstueck_aktuell")
+                    itemFlurstueck.setText(4, query.value(fieldPersonGmlId))
+                    itemFlurstueck.setText(5, query.value(fieldFlurstueckGmlId))
+                    listFlurstuecke.append(flurstueckskennzeichen)
+                self.logging.logEigentuemerFlurstueck(item.text(0),listFlurstuecke)
 
     def getSearchStringFlurstueck(self):
         return unicode(self.lineEdit.text().replace(" ", " & "))
@@ -630,12 +662,13 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
         return searchStringEigentuemer
 
     def on_showButton_pressed(self):
-        searchStringFlst = "";
-        searchStringFlur = "";
-        searchStringGemarkung = "";
-        searchStringStrasse = "";
-        searchStringPerson = "";
-        searchTyp = "";
+        searchStringFlst = ""
+        searchStringFlur = ""
+        searchStringGemarkung = ""
+        searchStringStrasse = ""
+        searchStringPerson = ""
+        searchStringPersonFlurstueck = ""
+        searchTyp = ""
 
         for item in self.treeWidget.selectedItems():
             if(item.text(2) == "flurstueck"):
@@ -659,6 +692,13 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                 if(len(searchStringPerson) > 0):
                     searchStringPerson += ','
                 searchStringPerson += "'" + item.text(1) + "'"
+            if(item.text(2) == "personFlurstueck"):
+                if(len(searchStringPerson) > 0):
+                    searchStringPerson += ','
+                searchStringPerson += "'" + item.text(4) + "'"
+                if(len(searchStringPersonFlurstueck) > 0):
+                    searchStringPersonFlurstueck += ','
+                searchStringPersonFlurstueck += "'" + item.text(5) + "'"
 
         if(len(searchStringGemarkung) > 0):
             self.addMapGemarkung(searchStringGemarkung)
@@ -674,17 +714,29 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
         if(len(searchStringStrasse) > 0):
             self.addMapHausnummer(searchStringStrasse)
 
-        if(len(searchStringPerson) > 0):
+        if(len(searchStringPerson) > 0 and len(searchStringPersonFlurstueck) == 0):
             self.addMapPerson(searchStringPerson)
 
-    def addMapPerson(self,personGmlId):
-        sqlLayer = "(SELECT row_number() over () as id,* FROM (SELECT nachnameoderfirma,vorname,geburtsname,namensbestandteil,akademischergrad,ax_flurstueck.land,gemarkungsnummer,flurnummer,ax_flurstueck.zaehler,ax_flurstueck.nenner,ax_flurstueck.flurstueckskennzeichen,ax_flurstueck.wkb_geometry FROM ax_person JOIN ax_namensnummer ON ax_person.gml_id = ax_namensnummer.benennt AND ax_namensnummer.endet IS NULL JOIN ax_buchungsblatt ON ax_buchungsblatt.gml_id = ax_namensnummer.istbestandteilvon AND ax_buchungsblatt.endet IS NULL JOIN ax_buchungsstelle ON ax_buchungsstelle.istbestandteilvon = ax_buchungsblatt.gml_id AND ax_buchungsstelle.endet IS NULL JOIN ax_flurstueck ON ax_flurstueck.istgebucht = ax_buchungsstelle.gml_id AND ax_flurstueck.endet IS NULL WHERE ax_person.gml_id IN ("+personGmlId+") UNION SELECT nachnameoderfirma,vorname,geburtsname,namensbestandteil,akademischergrad,ax_flurstueck.land,gemarkungsnummer,flurnummer,ax_flurstueck.zaehler,ax_flurstueck.nenner,ax_flurstueck.flurstueckskennzeichen,ax_flurstueck.wkb_geometry FROM ax_person JOIN ax_namensnummer ON ax_person.gml_id = ax_namensnummer.benennt AND ax_namensnummer.endet IS NULL JOIN ax_buchungsblatt ON ax_buchungsblatt.gml_id = ax_namensnummer.istbestandteilvon AND ax_buchungsblatt.endet IS NULL JOIN ax_buchungsstelle ON ax_buchungsstelle.istbestandteilvon = ax_buchungsblatt.gml_id AND ax_buchungsstelle.endet IS NULL JOIN ax_buchungsstelle as ax_buchungsstelle_2 ON ax_buchungsstelle_2.gml_id = ANY(ax_buchungsstelle.an) AND ax_buchungsstelle_2.endet IS NULL JOIN ax_flurstueck ON ax_flurstueck.istgebucht = ax_buchungsstelle_2.gml_id AND ax_flurstueck.endet IS NULL WHERE ax_person.gml_id IN ("+personGmlId+") AND ax_person.endet IS NULL) as foo)"
+        if(len(searchStringPersonFlurstueck) > 0 and len(searchStringPersonFlurstueck) > 0):
+            self.addMapPersonFlurstueck(searchStringPerson,searchStringPersonFlurstueck)
+
+    def addMapPersonFlurstueck(self,personGmlId,flurstueckGmlId):
+        sqlLayer = "(SELECT row_number() over () as id,* FROM (SELECT nachnameoderfirma,vorname,geburtsname,namensbestandteil,akademischergrad,ax_flurstueck.land,gemarkungsnummer,flurnummer,ax_flurstueck.zaehler,ax_flurstueck.nenner,ax_flurstueck.flurstueckskennzeichen,ax_flurstueck.wkb_geometry,ax_buchungsstelle.buchungsart, CASE WHEN ax_buchungsstelle.zaehler IS NOT NULL AND ax_buchungsstelle.nenner IS NOT NULL THEN ax_buchungsstelle.zaehler || '/' || ax_buchungsstelle.nenner ELSE NULL END as Anteil FROM ax_person JOIN ax_namensnummer ON ax_person.gml_id = ax_namensnummer.benennt AND ax_namensnummer.endet IS NULL JOIN ax_buchungsblatt ON ax_buchungsblatt.gml_id = ax_namensnummer.istbestandteilvon AND ax_buchungsblatt.endet IS NULL JOIN ax_buchungsstelle ON ax_buchungsstelle.istbestandteilvon = ax_buchungsblatt.gml_id AND ax_buchungsstelle.endet IS NULL JOIN ax_flurstueck ON ax_flurstueck.istgebucht = ax_buchungsstelle.gml_id AND ax_flurstueck.endet IS NULL WHERE ax_person.gml_id IN ("+personGmlId+") AND ax_flurstueck.gml_id IN ("+flurstueckGmlId+") AND ax_person.endet IS NULL UNION SELECT nachnameoderfirma,vorname,geburtsname,namensbestandteil,akademischergrad,ax_flurstueck.land,gemarkungsnummer,flurnummer,ax_flurstueck.zaehler,ax_flurstueck.nenner,ax_flurstueck.flurstueckskennzeichen,ax_flurstueck.wkb_geometry,ax_buchungsstelle.buchungsart, CASE WHEN ax_buchungsstelle.zaehler IS NOT NULL AND ax_buchungsstelle.nenner IS NOT NULL THEN ax_buchungsstelle.zaehler || '/' || ax_buchungsstelle.nenner ELSE NULL END as Anteil FROM ax_person JOIN ax_namensnummer ON ax_person.gml_id = ax_namensnummer.benennt AND ax_namensnummer.endet IS NULL JOIN ax_buchungsblatt ON ax_buchungsblatt.gml_id = ax_namensnummer.istbestandteilvon AND ax_buchungsblatt.endet IS NULL JOIN ax_buchungsstelle ON ax_buchungsstelle.istbestandteilvon = ax_buchungsblatt.gml_id AND ax_buchungsstelle.endet IS NULL JOIN ax_buchungsstelle as ax_buchungsstelle_2 ON ax_buchungsstelle_2.gml_id = ANY(ax_buchungsstelle.an) AND ax_buchungsstelle_2.endet IS NULL JOIN ax_flurstueck ON ax_flurstueck.istgebucht = ax_buchungsstelle_2.gml_id AND ax_flurstueck.endet IS NULL WHERE ax_person.gml_id IN ("+personGmlId+") AND ax_flurstueck.gml_id IN ("+flurstueckGmlId+") AND ax_person.endet IS NULL) as foo)"
         self.resetSuchergebnisLayer()
         uri = QgsDataSourceURI()
         uri.setConnection(self.dbHost, "5432", self.dbDatabasename, self.dbUsername, self.dbPassword)
         uri.setDataSource("", sqlLayer, "wkb_geometry","","id")
         vlayer = QgsVectorLayer(uri.uri(),  "Suchergebnis", "postgres")
-        self.addSuchergebnisLayer(vlayer)
+        self.addSuchergebnisLayer(vlayer,"eigentum")
+
+    def addMapPerson(self,personGmlId):
+        sqlLayer = "(SELECT row_number() over () as id,* FROM (SELECT nachnameoderfirma,vorname,geburtsname,namensbestandteil,akademischergrad,ax_flurstueck.land,gemarkungsnummer,flurnummer,ax_flurstueck.zaehler,ax_flurstueck.nenner,ax_flurstueck.flurstueckskennzeichen,ax_flurstueck.wkb_geometry,ax_buchungsstelle.buchungsart, CASE WHEN ax_buchungsstelle.zaehler IS NOT NULL AND ax_buchungsstelle.nenner IS NOT NULL THEN ax_buchungsstelle.zaehler || '/' || ax_buchungsstelle.nenner ELSE NULL END as Anteil FROM ax_person JOIN ax_namensnummer ON ax_person.gml_id = ax_namensnummer.benennt AND ax_namensnummer.endet IS NULL JOIN ax_buchungsblatt ON ax_buchungsblatt.gml_id = ax_namensnummer.istbestandteilvon AND ax_buchungsblatt.endet IS NULL JOIN ax_buchungsstelle ON ax_buchungsstelle.istbestandteilvon = ax_buchungsblatt.gml_id AND ax_buchungsstelle.endet IS NULL JOIN ax_flurstueck ON ax_flurstueck.istgebucht = ax_buchungsstelle.gml_id AND ax_flurstueck.endet IS NULL WHERE ax_person.gml_id IN ("+personGmlId+") UNION SELECT nachnameoderfirma,vorname,geburtsname,namensbestandteil,akademischergrad,ax_flurstueck.land,gemarkungsnummer,flurnummer,ax_flurstueck.zaehler,ax_flurstueck.nenner,ax_flurstueck.flurstueckskennzeichen,ax_flurstueck.wkb_geometry,ax_buchungsstelle.buchungsart, CASE WHEN ax_buchungsstelle.zaehler IS NOT NULL AND ax_buchungsstelle.nenner IS NOT NULL THEN ax_buchungsstelle.zaehler || '/' || ax_buchungsstelle.nenner ELSE NULL END as Anteil FROM ax_person JOIN ax_namensnummer ON ax_person.gml_id = ax_namensnummer.benennt AND ax_namensnummer.endet IS NULL JOIN ax_buchungsblatt ON ax_buchungsblatt.gml_id = ax_namensnummer.istbestandteilvon AND ax_buchungsblatt.endet IS NULL JOIN ax_buchungsstelle ON ax_buchungsstelle.istbestandteilvon = ax_buchungsblatt.gml_id AND ax_buchungsstelle.endet IS NULL JOIN ax_buchungsstelle as ax_buchungsstelle_2 ON ax_buchungsstelle_2.gml_id = ANY(ax_buchungsstelle.an) AND ax_buchungsstelle_2.endet IS NULL JOIN ax_flurstueck ON ax_flurstueck.istgebucht = ax_buchungsstelle_2.gml_id AND ax_flurstueck.endet IS NULL WHERE ax_person.gml_id IN ("+personGmlId+") AND ax_person.endet IS NULL) as foo)"
+        self.resetSuchergebnisLayer()
+        uri = QgsDataSourceURI()
+        uri.setConnection(self.dbHost, "5432", self.dbDatabasename, self.dbUsername, self.dbPassword)
+        uri.setDataSource("", sqlLayer, "wkb_geometry","","id")
+        vlayer = QgsVectorLayer(uri.uri(),  "Suchergebnis", "postgres")
+        self.addSuchergebnisLayer(vlayer,"eigentum")
 
     def addMapHausnummer(self,searchString):
         if(len(searchString) > 0):
@@ -782,16 +834,78 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
 
     def addSuchergebnisLayer(self, vlayer, typ = "aktuell"):
         symbol = QgsSymbolV2.defaultSymbol(vlayer.geometryType())
-        if(symbol != None):
+        if(typ=="eigentum"):
+            myRenderer = QgsRuleBasedRendererV2(symbol)
+
+            # Regel für Normaleigentum
+            if(self.getAnzahlNormaleigentum(vlayer.dataProvider().dataSourceUri().split("table=\"")[1].split("\"")[0]) > 0):
+                symbolNormaleigentum = symbol.clone()
+                symbolNormaleigentum.setColor(QtGui.QColor("#d94701"))
+                ruleNormaleigentum = QgsRuleBasedRendererV2.Rule(symbolNormaleigentum,0,0,"\"buchungsart\" IN ('1100','1101','1102','1200','1302') AND \"anteil\" IS NULL","Normaleigentum")
+                myRenderer.rootRule().appendChild(ruleNormaleigentum)
+
+            # Regel für Normaleigentum anteilig
+            if(self.getAnzahlNormaleigentum(vlayer.dataProvider().dataSourceUri().split("table=\"")[1].split("\"")[0], True) > 0):
+                symbolNormaleigentumAnteilig = symbol.clone()
+                symbolNormaleigentumAnteilig.setColor(QtGui.QColor("#d94701"))
+                ruleNormaleigentumAnteilig = QgsRuleBasedRendererV2.Rule(symbolNormaleigentumAnteilig,0,0,"\"buchungsart\" IN ('1100','1101','1102','1200','1302') AND \"anteil\" IS NOT NULL","anteiliges Normaleigentum")
+                myRenderer.rootRule().appendChild(ruleNormaleigentumAnteilig)
+                for listItem in symbolNormaleigentumAnteilig.symbolLayers():
+                    listItem.setBrushStyle(Qt.Dense3Pattern)
+
+            # Regel für Erbbaurecht
+            if(self.getAnzahlErbbaurecht(vlayer.dataProvider().dataSourceUri().split("table=\"")[1].split("\"")[0]) > 0):
+                symbolErbbaurecht = symbol.clone()
+                symbolErbbaurecht.setColor(QtGui.QColor("#fd8d3c"))
+                ruleErbbaurecht = QgsRuleBasedRendererV2.Rule(symbolErbbaurecht,0,0,"\"buchungsart\" IN ('2101','2102','2201','2202','2301','2302','2303') AND \"anteil\" IS NULL","Erbbaurecht")
+                myRenderer.rootRule().appendChild(ruleErbbaurecht)
+
+            # Regel für Erbbaurecht anteilig
+            if(self.getAnzahlErbbaurecht(vlayer.dataProvider().dataSourceUri().split("table=\"")[1].split("\"")[0], True) > 0):
+                symbolErbbaurechtAnteilig = symbol.clone()
+                symbolErbbaurechtAnteilig.setColor(QtGui.QColor("#fd8d3c"))
+                ruleErbbaurecht = QgsRuleBasedRendererV2.Rule(symbolErbbaurechtAnteilig,0,0,"\"buchungsart\" IN ('2101','2102','2201','2202','2301','2302','2303') AND \"anteil\" IS NOT NULL","anteiliges Erbbaurecht")
+                myRenderer.rootRule().appendChild(ruleErbbaurecht)
+                for listItem in symbolErbbaurechtAnteilig.symbolLayers():
+                    listItem.setBrushStyle(Qt.Dense3Pattern)
+
+            # Regel für Wohn-/Teileigentum
+            if(self.getAnzahlWohnTeileigentum(vlayer.dataProvider().dataSourceUri().split("table=\"")[1].split("\"")[0]) > 0):
+                symbolWohnTeileigentum = symbol.clone()
+                symbolWohnTeileigentum.setColor(QtGui.QColor("#fdbe85"))
+                ruleWohnTeileigentum = QgsRuleBasedRendererV2.Rule(symbolWohnTeileigentum,0,0,"\"buchungsart\" IN ('1301','1303','1401')","Wohnungs-/Teileigentum")
+                myRenderer.rootRule().appendChild(ruleWohnTeileigentum)
+
+            # Regel für sonstiges Eigentum
+            if(self.getAnzahlSonstigesEigentum(vlayer.dataProvider().dataSourceUri().split("table=\"")[1].split("\"")[0]) > 0):
+                symbolSonstigesEigentum = symbol.clone()
+                symbolSonstigesEigentum.setColor(QtGui.QColor("#feedde"))
+                ruleSonstigesEigentum = QgsRuleBasedRendererV2.Rule(symbolSonstigesEigentum,0,0,"\"buchungsart\" NOT IN ('1100','1101','1102','1200','1302','1301','1303','1401','1200','2101','2102','2201','2202','2301','2302','2303') AND \"anteil\" IS NULL","sonstiges Eigentum")
+                myRenderer.rootRule().appendChild(ruleSonstigesEigentum)
+
+            # Regel für sonstiges Eigentum anteilig
+            if(self.getAnzahlSonstigesEigentum(vlayer.dataProvider().dataSourceUri().split("table=\"")[1].split("\"")[0],True) > 0):
+                symbolSonstigesEigentumAnteilig = symbol.clone()
+                symbolSonstigesEigentumAnteilig.setColor(QtGui.QColor("#feedde"))
+                ruleSonstigesEigentum = QgsRuleBasedRendererV2.Rule(symbolSonstigesEigentumAnteilig,0,0,"\"buchungsart\" NOT IN ('1100','1101','1102','1200','1302','1301','1303','1401','1200','2101','2102','2201','2202','2301','2302','2303') AND \"anteil\" IS NOT NULL","anteiliges sonstiges Eigentum")
+                myRenderer.rootRule().appendChild(ruleSonstigesEigentum)
+                for listItem in symbolSonstigesEigentumAnteilig.symbolLayers():
+                    listItem.setBrushStyle(Qt.Dense3Pattern)
+
+            myRenderer.rootRule().takeChildAt(0)
+
+        else:
             symbol.setAlpha(1)
+            if(symbol != None):
+                if(typ == "flurstueck_historisch" or typ == "flurstueck_historisch_ungenau"):
+                    myColour = QtGui.QColor('#FDBF6F')
+                else:
+                    myColour = QtGui.QColor('#F08080')
+                symbol.setColor(myColour)
 
-            if(typ == "flurstueck_historisch" or typ == "flurstueck_historisch_ungenau"):
-                myColour = QtGui.QColor('#FDBF6F')
-            else:
-                myColour = QtGui.QColor('#F08080')
-            symbol.setColor(myColour)
+                myRenderer = QgsSingleSymbolRendererV2(symbol)
 
-            myRenderer = QgsSingleSymbolRendererV2(symbol)
+        if(myRenderer != None):
             vlayer.setRendererV2(myRenderer)
             vlayer.setBlendMode(13)
             if(typ == "flurstueck_historisch" or typ == "flurstueck_historisch_ungenau"):
@@ -811,6 +925,55 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                 canvas.setExtent(vlayer.extent().buffer(50))
 
             self.resetButton.setEnabled(True)
+            self.iface.mapCanvas().refresh()
+
+    def getAnzahlNormaleigentum(self,sql,anteilig = False):
+        if(hasattr(self,"db") == False):
+            self.loadDbSettings()
+        if(self.db.isOpen() == False):
+            self.db.open()
+        query = QSqlQuery(self.db)
+        if(anteilig == False):
+            sql = "SELECT * FROM (" + sql + ") as foo WHERE buchungsart IN ('1100','1101','1102','1200','1302') AND anteil IS NULL"
+        else:
+            sql = "SELECT * FROM (" + sql + ") as foo WHERE buchungsart IN ('1100','1101','1102','1200','1302') AND anteil IS NOT NULL"
+        query.exec_(sql)
+        return query.size()
+
+    def getAnzahlErbbaurecht(self,sql,anteilig = False):
+        if(hasattr(self,"db") == False):
+            self.loadDbSettings()
+        if(self.db.isOpen() == False):
+            self.db.open()
+        query = QSqlQuery(self.db)
+        if(anteilig == False):
+            sql = "SELECT * FROM (" + sql + ") as foo WHERE buchungsart IN ('2101','2102','2201','2202','2301','2302','2303') AND anteil IS NULL"
+        else:
+            sql = "SELECT * FROM (" + sql + ") as foo WHERE buchungsart IN ('2101','2102','2201','2202','2301','2302','2303') AND anteil IS NOT NULL"
+        query.exec_(sql)
+        return query.size()
+
+    def getAnzahlWohnTeileigentum(self,sql):
+        if(hasattr(self,"db") == False):
+            self.loadDbSettings()
+        if(self.db.isOpen() == False):
+            self.db.open()
+        query = QSqlQuery(self.db)
+        query.exec_("SELECT * FROM (" + sql + ") as foo WHERE buchungsart IN ('1301','1303','1401')")
+        return query.size()
+
+    def getAnzahlSonstigesEigentum(self,sql,anteilig = False):
+        if(hasattr(self,"db") == False):
+            self.loadDbSettings()
+        if(self.db.isOpen() == False):
+            self.db.open()
+        query = QSqlQuery(self.db)
+        if(anteilig == False):
+            sql = "SELECT * FROM (" + sql + ") as foo WHERE buchungsart NOT IN ('1100','1101','1102','1200','1302','1301','1303','1401','1200','2101','2102','2201','2202','2301','2302','2303') AND anteil IS NULL"
+        else:
+            sql = "SELECT * FROM (" + sql + ") as foo WHERE buchungsart NOT IN ('1100','1101','1102','1200','1302','1301','1303','1401','1200','2101','2102','2201','2202','2301','2302','2303') AND anteil IS NOT NULL"
+        query.exec_(sql)
+        return query.size()
 
     def resetSuchergebnisLayer(self):
          if(len(self.map.mapLayersByName("Suchergebnis")) > 0):
@@ -845,6 +1008,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
 
         if(hasattr(self,"db") == False):
             self.loadDbSettings()
+        if(self.db.isOpen() == False):
             self.db.open()
         query = QSqlQuery(self.db)
         query.exec_(sql)

@@ -21,6 +21,7 @@ from PyQt4.QtCore import QSettings
 from PyQt4.QtSql import QSqlDatabase, QSqlQuery
 from PyQt4.QtGui import QMessageBox
 from qgis.core import *
+import qgis.core
 
 class PostNAS_AccessControl:
     def __init__(self, username = None):

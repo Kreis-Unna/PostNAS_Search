@@ -5,7 +5,7 @@
     -------------------
     Date                : June 2016
     copyright          : (C) 2016 by Kreis-Unna
-    email                : marvin.brandt@kreis-unna.de
+    email                : marvin.kinberger@kreis-unna.de
  ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *

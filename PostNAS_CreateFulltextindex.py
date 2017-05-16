@@ -21,6 +21,8 @@ from PyQt4 import QtGui, uic
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtSql import *
+from qgis.core import *
+import qgis.core
 
 class PostNAS_CreateFulltextindex(QtGui.QDialog):
     def __init__(self, iface, parent=None):

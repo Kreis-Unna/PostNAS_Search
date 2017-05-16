@@ -19,6 +19,8 @@ import os, getpass, datetime
 from PyQt4.QtCore import QSettings
 from PyQt4.QtSql import QSqlDatabase, QSqlQuery
 from PostNAS_AccessControl import PostNAS_AccessControl
+from qgis.core import *
+import qgis.core
 
 class PostNAS_Logging:
     def __init__(self):

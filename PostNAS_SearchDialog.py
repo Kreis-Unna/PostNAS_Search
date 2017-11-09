@@ -724,7 +724,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
         sqlLayer = "(SELECT row_number() over () as id,* FROM (SELECT nachnameoderfirma,vorname,geburtsname,namensbestandteil,akademischergrad,ax_flurstueck.land,gemarkungsnummer,flurnummer,ax_flurstueck.zaehler,ax_flurstueck.nenner,ax_flurstueck.flurstueckskennzeichen,ax_flurstueck.wkb_geometry,ax_buchungsstelle.buchungsart, CASE WHEN ax_buchungsstelle.zaehler IS NOT NULL AND ax_buchungsstelle.nenner IS NOT NULL THEN ax_buchungsstelle.zaehler || '/' || ax_buchungsstelle.nenner ELSE NULL END as Anteil FROM ax_person JOIN ax_namensnummer ON ax_person.gml_id = ax_namensnummer.benennt AND ax_namensnummer.endet IS NULL JOIN ax_buchungsblatt ON ax_buchungsblatt.gml_id = ax_namensnummer.istbestandteilvon AND ax_buchungsblatt.endet IS NULL JOIN ax_buchungsstelle ON ax_buchungsstelle.istbestandteilvon = ax_buchungsblatt.gml_id AND ax_buchungsstelle.endet IS NULL JOIN ax_flurstueck ON ax_flurstueck.istgebucht = ax_buchungsstelle.gml_id AND ax_flurstueck.endet IS NULL WHERE ax_person.gml_id IN ("+personGmlId+") AND ax_flurstueck.gml_id IN ("+flurstueckGmlId+") AND ax_person.endet IS NULL UNION SELECT nachnameoderfirma,vorname,geburtsname,namensbestandteil,akademischergrad,ax_flurstueck.land,gemarkungsnummer,flurnummer,ax_flurstueck.zaehler,ax_flurstueck.nenner,ax_flurstueck.flurstueckskennzeichen,ax_flurstueck.wkb_geometry,ax_buchungsstelle.buchungsart, CASE WHEN ax_buchungsstelle.zaehler IS NOT NULL AND ax_buchungsstelle.nenner IS NOT NULL THEN ax_buchungsstelle.zaehler || '/' || ax_buchungsstelle.nenner ELSE NULL END as Anteil FROM ax_person JOIN ax_namensnummer ON ax_person.gml_id = ax_namensnummer.benennt AND ax_namensnummer.endet IS NULL JOIN ax_buchungsblatt ON ax_buchungsblatt.gml_id = ax_namensnummer.istbestandteilvon AND ax_buchungsblatt.endet IS NULL JOIN ax_buchungsstelle ON ax_buchungsstelle.istbestandteilvon = ax_buchungsblatt.gml_id AND ax_buchungsstelle.endet IS NULL JOIN ax_buchungsstelle as ax_buchungsstelle_2 ON ax_buchungsstelle_2.gml_id = ANY(ax_buchungsstelle.an) AND ax_buchungsstelle_2.endet IS NULL JOIN ax_flurstueck ON ax_flurstueck.istgebucht = ax_buchungsstelle_2.gml_id AND ax_flurstueck.endet IS NULL WHERE ax_person.gml_id IN ("+personGmlId+") AND ax_flurstueck.gml_id IN ("+flurstueckGmlId+") AND ax_person.endet IS NULL) as foo)"
         self.resetSuchergebnisLayer()
         uri = QgsDataSourceURI()
-        uri.setConnection(self.dbHost, "5432", self.dbDatabasename, self.dbUsername, self.dbPassword)
+        uri.setConnection(self.dbHost, self.dbPort, self.dbDatabasename, self.dbUsername, self.dbPassword)
         uri.setDataSource("", sqlLayer, "wkb_geometry","","id")
         vlayer = QgsVectorLayer(uri.uri(),  "Suchergebnis", "postgres")
         self.addSuchergebnisLayer(vlayer,"eigentum")
@@ -733,7 +733,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
         sqlLayer = "(SELECT row_number() over () as id,* FROM (SELECT nachnameoderfirma,vorname,geburtsname,namensbestandteil,akademischergrad,ax_flurstueck.land,gemarkungsnummer,flurnummer,ax_flurstueck.zaehler,ax_flurstueck.nenner,ax_flurstueck.flurstueckskennzeichen,ax_flurstueck.wkb_geometry,ax_buchungsstelle.buchungsart, CASE WHEN ax_buchungsstelle.zaehler IS NOT NULL AND ax_buchungsstelle.nenner IS NOT NULL THEN ax_buchungsstelle.zaehler || '/' || ax_buchungsstelle.nenner ELSE NULL END as Anteil FROM ax_person JOIN ax_namensnummer ON ax_person.gml_id = ax_namensnummer.benennt AND ax_namensnummer.endet IS NULL JOIN ax_buchungsblatt ON ax_buchungsblatt.gml_id = ax_namensnummer.istbestandteilvon AND ax_buchungsblatt.endet IS NULL JOIN ax_buchungsstelle ON ax_buchungsstelle.istbestandteilvon = ax_buchungsblatt.gml_id AND ax_buchungsstelle.endet IS NULL JOIN ax_flurstueck ON ax_flurstueck.istgebucht = ax_buchungsstelle.gml_id AND ax_flurstueck.endet IS NULL WHERE ax_person.gml_id IN ("+personGmlId+") UNION SELECT nachnameoderfirma,vorname,geburtsname,namensbestandteil,akademischergrad,ax_flurstueck.land,gemarkungsnummer,flurnummer,ax_flurstueck.zaehler,ax_flurstueck.nenner,ax_flurstueck.flurstueckskennzeichen,ax_flurstueck.wkb_geometry,ax_buchungsstelle.buchungsart, CASE WHEN ax_buchungsstelle.zaehler IS NOT NULL AND ax_buchungsstelle.nenner IS NOT NULL THEN ax_buchungsstelle.zaehler || '/' || ax_buchungsstelle.nenner ELSE NULL END as Anteil FROM ax_person JOIN ax_namensnummer ON ax_person.gml_id = ax_namensnummer.benennt AND ax_namensnummer.endet IS NULL JOIN ax_buchungsblatt ON ax_buchungsblatt.gml_id = ax_namensnummer.istbestandteilvon AND ax_buchungsblatt.endet IS NULL JOIN ax_buchungsstelle ON ax_buchungsstelle.istbestandteilvon = ax_buchungsblatt.gml_id AND ax_buchungsstelle.endet IS NULL JOIN ax_buchungsstelle as ax_buchungsstelle_2 ON ax_buchungsstelle_2.gml_id = ANY(ax_buchungsstelle.an) AND ax_buchungsstelle_2.endet IS NULL JOIN ax_flurstueck ON ax_flurstueck.istgebucht = ax_buchungsstelle_2.gml_id AND ax_flurstueck.endet IS NULL WHERE ax_person.gml_id IN ("+personGmlId+") AND ax_person.endet IS NULL) as foo)"
         self.resetSuchergebnisLayer()
         uri = QgsDataSourceURI()
-        uri.setConnection(self.dbHost, "5432", self.dbDatabasename, self.dbUsername, self.dbPassword)
+        uri.setConnection(self.dbHost, self.dbPort, self.dbDatabasename, self.dbUsername, self.dbPassword)
         uri.setDataSource("", sqlLayer, "wkb_geometry","","id")
         vlayer = QgsVectorLayer(uri.uri(),  "Suchergebnis", "postgres")
         self.addSuchergebnisLayer(vlayer,"eigentum")
@@ -742,7 +742,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
         if(len(searchString) > 0):
             self.resetSuchergebnisLayer()
             uri = QgsDataSourceURI()
-            uri.setConnection(self.dbHost, "5432", self.dbDatabasename, self.dbUsername, self.dbPassword)
+            uri.setConnection(self.dbHost, self.dbPort, self.dbDatabasename, self.dbUsername, self.dbPassword)
             uri.setDataSource("public", "ap_pto", "wkb_geometry","ARRAY[" + searchString + "]::character(16)[] @> dientzurdarstellungvon")
             vlayer = QgsVectorLayer(uri.uri(),  "Suchergebnis", "postgres")
 
@@ -753,7 +753,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
             self.resetSuchergebnisLayer()
 
             uri = QgsDataSourceURI()
-            uri.setConnection(self.dbHost, "5432", self.dbDatabasename, self.dbUsername, self.dbPassword)
+            uri.setConnection(self.dbHost, self.dbPort, self.dbDatabasename, self.dbUsername, self.dbPassword)
             if(typ == "flurstueck_aktuell"):
                 uri.setDataSource("public", "ax_flurstueck", "wkb_geometry", "flurstueckskennzeichen IN ('" +  searchString + "')")
             elif(typ == "flurstueck_historisch"):
@@ -815,7 +815,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
             self.resetSuchergebnisLayer()
 
             uri = QgsDataSourceURI()
-            uri.setConnection(self.dbHost, "5432", self.dbDatabasename, self.dbUsername, self.dbPassword)
+            uri.setConnection(self.dbHost, self.dbPort, self.dbDatabasename, self.dbUsername, self.dbPassword)
             uri.setDataSource("public", "ax_flurstueck", "wkb_geometry", "flurstueckskennzeichen SIMILAR TO '(" +  searchString + ")%'")
             vlayer = QgsVectorLayer(uri.uri(),  "Suchergebnis", "postgres")
 
@@ -826,7 +826,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
             self.resetSuchergebnisLayer()
 
             uri = QgsDataSourceURI()
-            uri.setConnection(self.dbHost, "5432", self.dbDatabasename, self.dbUsername, self.dbPassword)
+            uri.setConnection(self.dbHost, self.dbPort, self.dbDatabasename, self.dbUsername, self.dbPassword)
             uri.setDataSource("public", "ax_flurstueck", "wkb_geometry", "flurstueckskennzeichen SIMILAR TO '(" +  searchString + ")%'")
             vlayer = QgsVectorLayer(uri.uri(),  "Suchergebnis", "postgres")
 

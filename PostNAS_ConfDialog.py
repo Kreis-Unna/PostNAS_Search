@@ -17,15 +17,15 @@
 """
 
 import os
-from PyQt4 import QtGui,uic
-from PyQt4.QtGui import QDialog,QMessageBox, QTableWidget,QTableWidgetItem
-from PyQt4.QtCore import *
-from PostNAS_AccessControl import PostNAS_AccessControl
-from PostNAS_AccessControl_UserDialog import PostNAS_AccessControl_UserDialog
+from qgis.PyQt import QtGui,uic
+from qgis.PyQt.QtWidgets import QDialog,QMessageBox,QTableWidget,QTableWidgetItem
+from qgis.PyQt.QtCore import *
+from .PostNAS_AccessControl import PostNAS_AccessControl
+from .PostNAS_AccessControl_UserDialog import PostNAS_AccessControl_UserDialog
 import qgis.gui
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'PostNAS_ConfDialogBase.ui'))
 
-class PostNAS_ConfDialog(QtGui.QDialog, FORM_CLASS):
+class PostNAS_ConfDialog(QDialog, FORM_CLASS):
     def __init__(self, iface = None, parent = None):
         super(PostNAS_ConfDialog, self).__init__(parent)
         self.setupUi(self)
@@ -53,7 +53,6 @@ class PostNAS_ConfDialog(QtGui.QDialog, FORM_CLASS):
             self.disableAccessControl()
             self.checkBox.setEnabled(False)
             self.checkBox.setCheckState(Qt.Checked)
-
 
     def on_buttonBox_accepted(self):
         settings = QSettings("PostNAS", "PostNAS-Suche")
@@ -148,11 +147,11 @@ class PostNAS_ConfDialog(QtGui.QDialog, FORM_CLASS):
             rowCount = self.userTable.rowCount()
             self.userTable.insertRow(rowCount)
             if(user['username'] != None):
-                self.userTable.setItem(rowCount,0,QtGui.QTableWidgetItem(user['username']))
+                self.userTable.setItem(rowCount,0,QTableWidgetItem(user['username']))
             if(user['name'] != None):
-                self.userTable.setItem(rowCount,1,QtGui.QTableWidgetItem(user['name']))
+                self.userTable.setItem(rowCount,1,QTableWidgetItem(user['name']))
             if(user['access'] != None):
-                self.userTable.setItem(rowCount,2,QtGui.QTableWidgetItem(user['access']))
+                self.userTable.setItem(rowCount,2,QTableWidgetItem(user['access']))
         self.userTable.setSortingEnabled(True)
         self.userTable.sortByColumn(0,Qt.AscendingOrder)
         self.userTable.resizeColumnsToContents()

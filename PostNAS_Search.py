@@ -16,14 +16,15 @@
  ***************************************************************************/
 """
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from qgis.PyQt.QtCore import *
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtWidgets import QAction, QDockWidget
 # Initialize Qt resources from file resources.py
-import resources_rc
+from . import resources_rc
 # Import the code for the dialog
-from PostNAS_SearchDialog import PostNAS_SearchDialog
-from PostNAS_ConfDialog import PostNAS_ConfDialog
-from PostNAS_CreateFulltextindex import PostNAS_CreateFulltextindex
+from .PostNAS_SearchDialog import PostNAS_SearchDialog
+from .PostNAS_ConfDialog import PostNAS_ConfDialog
+from .PostNAS_CreateFulltextindex import PostNAS_CreateFulltextindex
 import os.path
 
 class PostNAS_Search:

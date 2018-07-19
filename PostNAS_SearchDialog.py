@@ -16,23 +16,47 @@
  ***************************************************************************/
 """
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from PyQt4.QtSql import *
-from PyQt4 import QtGui, uic, QtCore
+
+
+from qgis.PyQt.QtCore import *
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtSql import *
+from qgis.PyQt.QtWidgets import QMessageBox,QDialog,QApplication,QTreeWidgetItem
+from qgis.PyQt import QtGui, uic, QtCore
 from qgis.core import *
 import qgis.core
-from PostNAS_SearchDialogBase import Ui_PostNAS_SearchDialogBase
-from PostNAS_AccessControl import PostNAS_AccessControl
-from PostNAS_Logging import PostNAS_Logging
 
-class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
+from .PostNAS_SearchDialogBase import Ui_PostNAS_SearchDialogBase
+from .PostNAS_AccessControl import PostNAS_AccessControl
+from .PostNAS_Logging import PostNAS_Logging
+
+if hasattr(qgis.core, "QGis"):
+    qgis3 = False
+    from qgis.core import (
+        QgsDataSourceURI as QgsDataSourceUri,
+        QgsSymbolV2 as QgsSymbol,
+        QgsSingleSymbolRendererV2 as QgsSingleSymbolRenderer,
+        QgsRuleBasedRendererV2 as QgsRuleBasedRenderer
+    )
+else:
+    qgis3 = True
+    from qgis.core import (
+        QgsDataSourceUri,
+        QgsSymbol,
+        QgsSingleSymbolRenderer,
+        QgsRuleBasedRenderer
+    )
+
+class PostNAS_SearchDialog(QDialog, Ui_PostNAS_SearchDialogBase):
     def __init__(self, parent=None,  iface=None):
-        super(PostNAS_SearchDialog, self).__init__(parent)
+        super(PostNAS_SearchDialog, self).__init__()
         self.setupUi(self)
         self.iface = iface
 
-        self.map = QgsMapLayerRegistry.instance()
+        if qgis3:
+            self.map = QgsProject.instance()
+        else:
+            self.map = QgsMapLayerRegistry.instance()
         self.treeWidget.setColumnCount(1)
 
         self.indexWarning = True
@@ -668,6 +692,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
         searchStringStrasse = ""
         searchStringPerson = ""
         searchStringPersonFlurstueck = ""
+        searchStringHausnummer = ""
         searchTyp = ""
 
         for item in self.treeWidget.selectedItems():
@@ -688,6 +713,10 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                 if(len(searchStringStrasse) >0):
                     searchStringStrasse += ','
                 searchStringStrasse += "'" + item.text(1) + "'"
+            if(item.text(2) == "hausnummer"):
+                if(len(searchStringHausnummer) > 0):
+                    searchStringHausnummer += ','
+                searchStringHausnummer += "'" + item.text(1) + "'"
             if(item.text(2) == "person"):
                 if(len(searchStringPerson) > 0):
                     searchStringPerson += ','
@@ -714,6 +743,9 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
         if(len(searchStringStrasse) > 0):
             self.addMapHausnummer(searchStringStrasse)
 
+        if (len(searchStringHausnummer) > 0):
+            self.addMapHausnummer(searchStringHausnummer)
+
         if(len(searchStringPerson) > 0 and len(searchStringPersonFlurstueck) == 0):
             self.addMapPerson(searchStringPerson)
 
@@ -723,7 +755,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
     def addMapPersonFlurstueck(self,personGmlId,flurstueckGmlId):
         sqlLayer = "(SELECT row_number() over () as id,* FROM (SELECT nachnameoderfirma,vorname,geburtsname,namensbestandteil,akademischergrad,ax_flurstueck.land,gemarkungsnummer,flurnummer,ax_flurstueck.zaehler,ax_flurstueck.nenner,ax_flurstueck.flurstueckskennzeichen,ax_flurstueck.wkb_geometry,ax_buchungsstelle.buchungsart, CASE WHEN ax_buchungsstelle.zaehler IS NOT NULL AND ax_buchungsstelle.nenner IS NOT NULL THEN ax_buchungsstelle.zaehler || '/' || ax_buchungsstelle.nenner ELSE NULL END as Anteil FROM ax_person JOIN ax_namensnummer ON ax_person.gml_id = ax_namensnummer.benennt AND ax_namensnummer.endet IS NULL JOIN ax_buchungsblatt ON ax_buchungsblatt.gml_id = ax_namensnummer.istbestandteilvon AND ax_buchungsblatt.endet IS NULL JOIN ax_buchungsstelle ON ax_buchungsstelle.istbestandteilvon = ax_buchungsblatt.gml_id AND ax_buchungsstelle.endet IS NULL JOIN ax_flurstueck ON ax_flurstueck.istgebucht = ax_buchungsstelle.gml_id AND ax_flurstueck.endet IS NULL WHERE ax_person.gml_id IN ("+personGmlId+") AND ax_flurstueck.gml_id IN ("+flurstueckGmlId+") AND ax_person.endet IS NULL UNION SELECT nachnameoderfirma,vorname,geburtsname,namensbestandteil,akademischergrad,ax_flurstueck.land,gemarkungsnummer,flurnummer,ax_flurstueck.zaehler,ax_flurstueck.nenner,ax_flurstueck.flurstueckskennzeichen,ax_flurstueck.wkb_geometry,ax_buchungsstelle.buchungsart, CASE WHEN ax_buchungsstelle.zaehler IS NOT NULL AND ax_buchungsstelle.nenner IS NOT NULL THEN ax_buchungsstelle.zaehler || '/' || ax_buchungsstelle.nenner ELSE NULL END as Anteil FROM ax_person JOIN ax_namensnummer ON ax_person.gml_id = ax_namensnummer.benennt AND ax_namensnummer.endet IS NULL JOIN ax_buchungsblatt ON ax_buchungsblatt.gml_id = ax_namensnummer.istbestandteilvon AND ax_buchungsblatt.endet IS NULL JOIN ax_buchungsstelle ON ax_buchungsstelle.istbestandteilvon = ax_buchungsblatt.gml_id AND ax_buchungsstelle.endet IS NULL JOIN ax_buchungsstelle as ax_buchungsstelle_2 ON ax_buchungsstelle_2.gml_id = ANY(ax_buchungsstelle.an) AND ax_buchungsstelle_2.endet IS NULL JOIN ax_flurstueck ON ax_flurstueck.istgebucht = ax_buchungsstelle_2.gml_id AND ax_flurstueck.endet IS NULL WHERE ax_person.gml_id IN ("+personGmlId+") AND ax_flurstueck.gml_id IN ("+flurstueckGmlId+") AND ax_person.endet IS NULL) as foo)"
         self.resetSuchergebnisLayer()
-        uri = QgsDataSourceURI()
+        uri = QgsDataSourceUri()
         uri.setConnection(self.dbHost, self.dbPort, self.dbDatabasename, self.dbUsername, self.dbPassword)
         uri.setDataSource("", sqlLayer, "wkb_geometry","","id")
         vlayer = QgsVectorLayer(uri.uri(),  "Suchergebnis", "postgres")
@@ -732,7 +764,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
     def addMapPerson(self,personGmlId):
         sqlLayer = "(SELECT row_number() over () as id,* FROM (SELECT nachnameoderfirma,vorname,geburtsname,namensbestandteil,akademischergrad,ax_flurstueck.land,gemarkungsnummer,flurnummer,ax_flurstueck.zaehler,ax_flurstueck.nenner,ax_flurstueck.flurstueckskennzeichen,ax_flurstueck.wkb_geometry,ax_buchungsstelle.buchungsart, CASE WHEN ax_buchungsstelle.zaehler IS NOT NULL AND ax_buchungsstelle.nenner IS NOT NULL THEN ax_buchungsstelle.zaehler || '/' || ax_buchungsstelle.nenner ELSE NULL END as Anteil FROM ax_person JOIN ax_namensnummer ON ax_person.gml_id = ax_namensnummer.benennt AND ax_namensnummer.endet IS NULL JOIN ax_buchungsblatt ON ax_buchungsblatt.gml_id = ax_namensnummer.istbestandteilvon AND ax_buchungsblatt.endet IS NULL JOIN ax_buchungsstelle ON ax_buchungsstelle.istbestandteilvon = ax_buchungsblatt.gml_id AND ax_buchungsstelle.endet IS NULL JOIN ax_flurstueck ON ax_flurstueck.istgebucht = ax_buchungsstelle.gml_id AND ax_flurstueck.endet IS NULL WHERE ax_person.gml_id IN ("+personGmlId+") UNION SELECT nachnameoderfirma,vorname,geburtsname,namensbestandteil,akademischergrad,ax_flurstueck.land,gemarkungsnummer,flurnummer,ax_flurstueck.zaehler,ax_flurstueck.nenner,ax_flurstueck.flurstueckskennzeichen,ax_flurstueck.wkb_geometry,ax_buchungsstelle.buchungsart, CASE WHEN ax_buchungsstelle.zaehler IS NOT NULL AND ax_buchungsstelle.nenner IS NOT NULL THEN ax_buchungsstelle.zaehler || '/' || ax_buchungsstelle.nenner ELSE NULL END as Anteil FROM ax_person JOIN ax_namensnummer ON ax_person.gml_id = ax_namensnummer.benennt AND ax_namensnummer.endet IS NULL JOIN ax_buchungsblatt ON ax_buchungsblatt.gml_id = ax_namensnummer.istbestandteilvon AND ax_buchungsblatt.endet IS NULL JOIN ax_buchungsstelle ON ax_buchungsstelle.istbestandteilvon = ax_buchungsblatt.gml_id AND ax_buchungsstelle.endet IS NULL JOIN ax_buchungsstelle as ax_buchungsstelle_2 ON ax_buchungsstelle_2.gml_id = ANY(ax_buchungsstelle.an) AND ax_buchungsstelle_2.endet IS NULL JOIN ax_flurstueck ON ax_flurstueck.istgebucht = ax_buchungsstelle_2.gml_id AND ax_flurstueck.endet IS NULL WHERE ax_person.gml_id IN ("+personGmlId+") AND ax_person.endet IS NULL) as foo)"
         self.resetSuchergebnisLayer()
-        uri = QgsDataSourceURI()
+        uri = QgsDataSourceUri()
         uri.setConnection(self.dbHost, self.dbPort, self.dbDatabasename, self.dbUsername, self.dbPassword)
         uri.setDataSource("", sqlLayer, "wkb_geometry","","id")
         vlayer = QgsVectorLayer(uri.uri(),  "Suchergebnis", "postgres")
@@ -741,7 +773,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
     def addMapHausnummer(self,searchString):
         if(len(searchString) > 0):
             self.resetSuchergebnisLayer()
-            uri = QgsDataSourceURI()
+            uri = QgsDataSourceUri()
             uri.setConnection(self.dbHost, self.dbPort, self.dbDatabasename, self.dbUsername, self.dbPassword)
             uri.setDataSource("public", "ap_pto", "wkb_geometry","ARRAY[" + searchString + "]::character(16)[] @> dientzurdarstellungvon")
             vlayer = QgsVectorLayer(uri.uri(),  "Suchergebnis", "postgres")
@@ -752,7 +784,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
         if(len(searchString) > 0):
             self.resetSuchergebnisLayer()
 
-            uri = QgsDataSourceURI()
+            uri = QgsDataSourceUri()
             uri.setConnection(self.dbHost, self.dbPort, self.dbDatabasename, self.dbUsername, self.dbPassword)
             if(typ == "flurstueck_aktuell"):
                 uri.setDataSource("public", "ax_flurstueck", "wkb_geometry", "flurstueckskennzeichen IN ('" +  searchString + "')")
@@ -814,7 +846,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
         if(len(searchString) > 0):
             self.resetSuchergebnisLayer()
 
-            uri = QgsDataSourceURI()
+            uri = QgsDataSourceUri()
             uri.setConnection(self.dbHost, self.dbPort, self.dbDatabasename, self.dbUsername, self.dbPassword)
             uri.setDataSource("public", "ax_flurstueck", "wkb_geometry", "flurstueckskennzeichen SIMILAR TO '(" +  searchString + ")%'")
             vlayer = QgsVectorLayer(uri.uri(),  "Suchergebnis", "postgres")
@@ -825,7 +857,7 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
         if(len(searchString) > 0):
             self.resetSuchergebnisLayer()
 
-            uri = QgsDataSourceURI()
+            uri = QgsDataSourceUri()
             uri.setConnection(self.dbHost, self.dbPort, self.dbDatabasename, self.dbUsername, self.dbPassword)
             uri.setDataSource("public", "ax_flurstueck", "wkb_geometry", "flurstueckskennzeichen SIMILAR TO '(" +  searchString + ")%'")
             vlayer = QgsVectorLayer(uri.uri(),  "Suchergebnis", "postgres")
@@ -833,22 +865,22 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
             self.addSuchergebnisLayer(vlayer)
 
     def addSuchergebnisLayer(self, vlayer, typ = "aktuell"):
-        symbol = QgsSymbolV2.defaultSymbol(vlayer.geometryType())
+        symbol = QgsSymbol.defaultSymbol(vlayer.geometryType())
         if(typ=="eigentum"):
-            myRenderer = QgsRuleBasedRendererV2(symbol)
+            myRenderer = QgsRuleBasedRenderer(symbol)
 
             # Regel für Normaleigentum
             if(self.getAnzahlNormaleigentum(vlayer.dataProvider().dataSourceUri().split("table=\"")[1].split("\"")[0]) > 0):
                 symbolNormaleigentum = symbol.clone()
                 symbolNormaleigentum.setColor(QtGui.QColor("#d94701"))
-                ruleNormaleigentum = QgsRuleBasedRendererV2.Rule(symbolNormaleigentum,0,0,"\"buchungsart\" IN ('1100','1101','1102','1200','1302') AND \"anteil\" IS NULL","Normaleigentum")
+                ruleNormaleigentum = QgsRuleBasedRenderer.Rule(symbolNormaleigentum,0,0,"\"buchungsart\" IN ('1100','1101','1102','1200','1302') AND \"anteil\" IS NULL","Normaleigentum")
                 myRenderer.rootRule().appendChild(ruleNormaleigentum)
 
             # Regel für Normaleigentum anteilig
             if(self.getAnzahlNormaleigentum(vlayer.dataProvider().dataSourceUri().split("table=\"")[1].split("\"")[0], True) > 0):
                 symbolNormaleigentumAnteilig = symbol.clone()
                 symbolNormaleigentumAnteilig.setColor(QtGui.QColor("#d94701"))
-                ruleNormaleigentumAnteilig = QgsRuleBasedRendererV2.Rule(symbolNormaleigentumAnteilig,0,0,"\"buchungsart\" IN ('1100','1101','1102','1200','1302') AND \"anteil\" IS NOT NULL","anteiliges Normaleigentum")
+                ruleNormaleigentumAnteilig = QgsRuleBasedRenderer.Rule(symbolNormaleigentumAnteilig,0,0,"\"buchungsart\" IN ('1100','1101','1102','1200','1302') AND \"anteil\" IS NOT NULL","anteiliges Normaleigentum")
                 myRenderer.rootRule().appendChild(ruleNormaleigentumAnteilig)
                 for listItem in symbolNormaleigentumAnteilig.symbolLayers():
                     listItem.setBrushStyle(Qt.Dense3Pattern)
@@ -857,14 +889,14 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
             if(self.getAnzahlErbbaurecht(vlayer.dataProvider().dataSourceUri().split("table=\"")[1].split("\"")[0]) > 0):
                 symbolErbbaurecht = symbol.clone()
                 symbolErbbaurecht.setColor(QtGui.QColor("#fd8d3c"))
-                ruleErbbaurecht = QgsRuleBasedRendererV2.Rule(symbolErbbaurecht,0,0,"\"buchungsart\" IN ('2101','2102','2201','2202','2301','2302','2303') AND \"anteil\" IS NULL","Erbbaurecht")
+                ruleErbbaurecht = QgsRuleBasedRenderer.Rule(symbolErbbaurecht,0,0,"\"buchungsart\" IN ('2101','2102','2201','2202','2301','2302','2303') AND \"anteil\" IS NULL","Erbbaurecht")
                 myRenderer.rootRule().appendChild(ruleErbbaurecht)
 
             # Regel für Erbbaurecht anteilig
             if(self.getAnzahlErbbaurecht(vlayer.dataProvider().dataSourceUri().split("table=\"")[1].split("\"")[0], True) > 0):
                 symbolErbbaurechtAnteilig = symbol.clone()
                 symbolErbbaurechtAnteilig.setColor(QtGui.QColor("#fd8d3c"))
-                ruleErbbaurecht = QgsRuleBasedRendererV2.Rule(symbolErbbaurechtAnteilig,0,0,"\"buchungsart\" IN ('2101','2102','2201','2202','2301','2302','2303') AND \"anteil\" IS NOT NULL","anteiliges Erbbaurecht")
+                ruleErbbaurecht = QgsRuleBasedRenderer.Rule(symbolErbbaurechtAnteilig,0,0,"\"buchungsart\" IN ('2101','2102','2201','2202','2301','2302','2303') AND \"anteil\" IS NOT NULL","anteiliges Erbbaurecht")
                 myRenderer.rootRule().appendChild(ruleErbbaurecht)
                 for listItem in symbolErbbaurechtAnteilig.symbolLayers():
                     listItem.setBrushStyle(Qt.Dense3Pattern)
@@ -873,29 +905,31 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
             if(self.getAnzahlWohnTeileigentum(vlayer.dataProvider().dataSourceUri().split("table=\"")[1].split("\"")[0]) > 0):
                 symbolWohnTeileigentum = symbol.clone()
                 symbolWohnTeileigentum.setColor(QtGui.QColor("#fdbe85"))
-                ruleWohnTeileigentum = QgsRuleBasedRendererV2.Rule(symbolWohnTeileigentum,0,0,"\"buchungsart\" IN ('1301','1303','1401')","Wohnungs-/Teileigentum")
+                ruleWohnTeileigentum = QgsRuleBasedRenderer.Rule(symbolWohnTeileigentum,0,0,"\"buchungsart\" IN ('1301','1303','1401')","Wohnungs-/Teileigentum")
                 myRenderer.rootRule().appendChild(ruleWohnTeileigentum)
 
             # Regel für sonstiges Eigentum
             if(self.getAnzahlSonstigesEigentum(vlayer.dataProvider().dataSourceUri().split("table=\"")[1].split("\"")[0]) > 0):
                 symbolSonstigesEigentum = symbol.clone()
                 symbolSonstigesEigentum.setColor(QtGui.QColor("#feedde"))
-                ruleSonstigesEigentum = QgsRuleBasedRendererV2.Rule(symbolSonstigesEigentum,0,0,"\"buchungsart\" NOT IN ('1100','1101','1102','1200','1302','1301','1303','1401','1200','2101','2102','2201','2202','2301','2302','2303') AND \"anteil\" IS NULL","sonstiges Eigentum")
+                ruleSonstigesEigentum = QgsRuleBasedRenderer.Rule(symbolSonstigesEigentum,0,0,"\"buchungsart\" NOT IN ('1100','1101','1102','1200','1302','1301','1303','1401','1200','2101','2102','2201','2202','2301','2302','2303') AND \"anteil\" IS NULL","sonstiges Eigentum")
                 myRenderer.rootRule().appendChild(ruleSonstigesEigentum)
 
             # Regel für sonstiges Eigentum anteilig
             if(self.getAnzahlSonstigesEigentum(vlayer.dataProvider().dataSourceUri().split("table=\"")[1].split("\"")[0],True) > 0):
                 symbolSonstigesEigentumAnteilig = symbol.clone()
                 symbolSonstigesEigentumAnteilig.setColor(QtGui.QColor("#feedde"))
-                ruleSonstigesEigentum = QgsRuleBasedRendererV2.Rule(symbolSonstigesEigentumAnteilig,0,0,"\"buchungsart\" NOT IN ('1100','1101','1102','1200','1302','1301','1303','1401','1200','2101','2102','2201','2202','2301','2302','2303') AND \"anteil\" IS NOT NULL","anteiliges sonstiges Eigentum")
+                ruleSonstigesEigentum = QgsRuleBasedRenderer.Rule(symbolSonstigesEigentumAnteilig,0,0,"\"buchungsart\" NOT IN ('1100','1101','1102','1200','1302','1301','1303','1401','1200','2101','2102','2201','2202','2301','2302','2303') AND \"anteil\" IS NOT NULL","anteiliges sonstiges Eigentum")
                 myRenderer.rootRule().appendChild(ruleSonstigesEigentum)
                 for listItem in symbolSonstigesEigentumAnteilig.symbolLayers():
                     listItem.setBrushStyle(Qt.Dense3Pattern)
-
             myRenderer.rootRule().takeChildAt(0)
 
         else:
-            symbol.setAlpha(1)
+            if qgis3:
+                symbol.setOpacity(1)
+            else:
+                symbol.setAlpha(1)
             if(symbol != None):
                 if(typ == "flurstueck_historisch" or typ == "flurstueck_historisch_ungenau"):
                     myColour = QtGui.QColor('#FDBF6F')
@@ -903,26 +937,39 @@ class PostNAS_SearchDialog(QtGui.QDialog, Ui_PostNAS_SearchDialogBase):
                     myColour = QtGui.QColor('#F08080')
                 symbol.setColor(myColour)
 
-                myRenderer = QgsSingleSymbolRendererV2(symbol)
+                myRenderer = QgsSingleSymbolRenderer(symbol)
 
         if(myRenderer != None):
-            vlayer.setRendererV2(myRenderer)
+            if qgis3:
+                vlayer.setRenderer(myRenderer)
+            else:
+                vlayer.setRendererV2(myRenderer)
+
             vlayer.setBlendMode(13)
             if(typ == "flurstueck_historisch" or typ == "flurstueck_historisch_ungenau"):
-                vlayer.rendererV2().symbol().symbolLayer(0).setBorderStyle(2)
+                if qgis3:
+                    vlayer.renderer().symbol().symbolLayer(0).setStrokeStyle(2)
+                else:
+                    vlayer.rendererV2().symbol().symbolLayer(0).setBorderStyle(2)
             elif(typ == "strasse"):
-                vlayer.rendererV2().symbol().symbolLayer(0).setSize(10)
+                if qgis3:
+                    vlayer.renderer().symbol().symbolLayer(0).setSize(10)
+                else:
+                    vlayer.rendererV2().symbol().symbolLayer(0).setSize(10)
 
-            # Insert Layer at Top of Legend
-            QgsMapLayerRegistry.instance().addMapLayer(vlayer, False)
+            self.map.addMapLayer(vlayer, False)
             QgsProject.instance().layerTreeRoot().insertLayer(0, vlayer)
 
             canvas = self.iface.mapCanvas()
-            if(canvas.hasCrsTransformEnabled() == True):
+            if(not qgis3 and canvas.hasCrsTransformEnabled() == True):
                 transform = QgsCoordinateTransform(vlayer.crs(), canvas.mapSettings().destinationCrs())
                 canvas.setExtent(transform.transform(vlayer.extent().buffer(50)))
             else:
-                canvas.setExtent(vlayer.extent().buffer(50))
+                if qgis3:
+                    canvas.setExtent(vlayer.extent().buffered(50))
+                else:
+                    canvas.setExtent(vlayer.extent().buffer(50))
+
 
             self.resetButton.setEnabled(True)
             self.iface.mapCanvas().refresh()

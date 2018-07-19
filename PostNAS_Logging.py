@@ -16,9 +16,9 @@
  ***************************************************************************/
 """
 import os, getpass, datetime
-from PyQt4.QtCore import QSettings
-from PyQt4.QtSql import QSqlDatabase, QSqlQuery
-from PostNAS_AccessControl import PostNAS_AccessControl
+from qgis.PyQt.QtCore import QSettings
+from qgis.PyQt.QtSql import QSqlDatabase, QSqlQuery
+from .PostNAS_AccessControl import PostNAS_AccessControl
 from qgis.core import *
 import qgis.core
 

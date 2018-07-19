@@ -1,9 +1,10 @@
 [general]
 name=PostNAS Suchfunktionen
 qgisMinimumVersion=2.0
+qgisMaximumVersion=3.98
 description=Searchfunction for PostNAS Database
 description[de]=Suchfunktionalität für eine PostNAS Datenbank
-version=1.1.1
+version=1.2.0
 author=Marvin Kinberger - Kreis-Unna
 email=marvin.kinberger@kreis-unna.de
 
@@ -15,3 +16,10 @@ repository=https://github.com/Kreis-Unna/PostNAS_Search
 icon=search_24x24.png
 
 about=This plugin can search parcels in a PostNAS database. The concept of this plugin is a single field search like google. So you can search substrings of the parcel identifier. After finding the parcel will be highlighted in the map.
+
+changelog=Änderungen in 1.2.0
+    * Kompatibilität für QGIS 3.x hergestellt
+    * Einige Verbesserungen in den Fehlermeldungen
+    * Fehlerbehebung bei der Löschung von Benutzern aus der Zugriffssteuerung
+    * Mehrfachauswahl von Hausnummern
+    * Hausnummern mit "Anzeigen-Button" nun aufrufbar

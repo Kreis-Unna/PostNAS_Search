@@ -17,9 +17,9 @@
 """
 import os
 import getpass
-from PyQt4.QtCore import QSettings
-from PyQt4.QtSql import QSqlDatabase, QSqlQuery
-from PyQt4.QtGui import QMessageBox
+from qgis.PyQt.QtCore import QSettings
+from qgis.PyQt.QtSql import QSqlDatabase, QSqlQuery
+from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import *
 import qgis.core
 
@@ -156,6 +156,7 @@ class PostNAS_AccessControl:
             if(query.lastError().number() == -1):
                 return True
             else:
+                QgsMessageLog.logMessage("Datenbankfehler beim Update: " + query.lastError().text(),'PostNAS-Suche', Qgis.Critical)
                 return False
         else:
             return False
@@ -216,7 +217,7 @@ class PostNAS_AccessControl:
         return results
 
     def deleteUser(self):
-        sql = "DELETE FROM postnas_search_access_control WHERE lower(username) = :user"
+        sql = "DELETE FROM postnas_search_access_control WHERE lower(username) = :username"
         self.__openDB()
         queryDeleteUser = QSqlQuery(self.db)
         queryDeleteUser.prepare(sql)
@@ -226,6 +227,7 @@ class PostNAS_AccessControl:
         if(queryDeleteUser.lastError().number() == -1):
             return True
         else:
+            QgsMessageLog.logMessage("Datenbankfehler beim Löschen: " + queryDeleteUser.lastError().text(), 'PostNAS-Suche',Qgis.Critical)
             return False
 
     def getAccessModes(self):

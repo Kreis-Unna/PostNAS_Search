@@ -17,12 +17,12 @@
 """
 
 import os
-from PyQt4 import QtGui,uic
-from PyQt4.QtGui import QMessageBox
-from PostNAS_AccessControl import PostNAS_AccessControl
+from qgis.PyQt import QtGui,uic
+from qgis.PyQt.QtWidgets import QDialog,QMessageBox
+from .PostNAS_AccessControl import PostNAS_AccessControl
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'PostNAS_AccessControl_UserDialog.ui'))
 
-class PostNAS_AccessControl_UserDialog(QtGui.QDialog, FORM_CLASS):
+class PostNAS_AccessControl_UserDialog(QDialog, FORM_CLASS):
     def __init__(self, mode = "new",accessControl = None,iface = None, parent = None):
         super(PostNAS_AccessControl_UserDialog, self).__init__(parent)
         self.setupUi(self)

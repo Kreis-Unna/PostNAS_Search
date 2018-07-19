@@ -17,14 +17,15 @@
 """
 
 import os
-from PyQt4 import QtGui, uic
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from PyQt4.QtSql import *
+from qgis.PyQt import QtGui, uic
+from qgis.PyQt.QtCore import *
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtSql import *
+from qgis.PyQt.QtWidgets import *
 from qgis.core import *
 import qgis.core
 
-class PostNAS_CreateFulltextindex(QtGui.QDialog):
+class PostNAS_CreateFulltextindex(QDialog):
     def __init__(self, iface, parent=None):
         super(PostNAS_CreateFulltextindex, self).__init__(parent)
         self.dialog = uic.loadUi(os.path.join(os.path.dirname(__file__), 'PostNAS_FulltextindexInProgress.ui'))
@@ -75,6 +76,8 @@ class PostNAS_CreateFulltextindex(QtGui.QDialog):
                 self.db.open()
         self.query = QSqlQuery(self.db)
         self.query.exec_(sql)
+        if(self.query.lastError().number() != -1):
+            QgsMessageLog.logMessage("Datenbankfehler beim Erzeugen des Volltextindex: " + self.query.lastError().text(),'PostNAS-Suche', Qgis.Critical)
         self.db.close()
 
     def checkPostnasSeachTable(self):

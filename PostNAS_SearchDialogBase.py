@@ -7,7 +7,9 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt4 import QtCore, QtGui
+from qgis.PyQt import QtCore, QtGui
+from qgis.PyQt.QtWidgets import QGridLayout, QTreeWidget, QLineEdit, QToolButton, QAbstractItemView, QApplication
+from qgis.PyQt.QtGui import QPixmap, QIcon
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -16,38 +18,38 @@ except AttributeError:
         return s
 
 try:
-    _encoding = QtGui.QApplication.UnicodeUTF8
+    _encoding = QApplication.UnicodeUTF8
     def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig, _encoding)
+        return QApplication.translate(context, text, disambig, _encoding)
 except AttributeError:
     def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig)
+        return QApplication.translate(context, text, disambig)
 
 class Ui_PostNAS_SearchDialogBase(object):
     def setupUi(self, PostNAS_SearchDialogBase):
         PostNAS_SearchDialogBase.setObjectName(_fromUtf8("PostNAS_SearchDialogBase"))
         PostNAS_SearchDialogBase.resize(501, 337)
-        self.gridLayout = QtGui.QGridLayout(PostNAS_SearchDialogBase)
+        self.gridLayout = QGridLayout(PostNAS_SearchDialogBase)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
-        self.treeWidget = QtGui.QTreeWidget(PostNAS_SearchDialogBase)
-        self.treeWidget.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        self.treeWidget = QTreeWidget(PostNAS_SearchDialogBase)
+        self.treeWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.treeWidget.setHeaderHidden(True)
         self.treeWidget.setObjectName(_fromUtf8("treeWidget"))
         self.treeWidget.headerItem().setText(0, _fromUtf8("1"))
         self.gridLayout.addWidget(self.treeWidget, 1, 0, 1, 3)
-        self.lineEdit = QtGui.QLineEdit(PostNAS_SearchDialogBase)
+        self.lineEdit = QLineEdit(PostNAS_SearchDialogBase)
         self.lineEdit.setObjectName(_fromUtf8("lineEdit"))
         self.gridLayout.addWidget(self.lineEdit, 0, 0, 1, 3)
-        self.showButton = QtGui.QToolButton(PostNAS_SearchDialogBase)
+        self.showButton = QToolButton(PostNAS_SearchDialogBase)
         self.showButton.setEnabled(False)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/plugins/PostNAS_Search/search_16x16.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QPixmap(_fromUtf8(":/plugins/PostNAS_Search/search_16x16.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.showButton.setIcon(icon)
         self.showButton.setObjectName(_fromUtf8("showButton"))
         self.gridLayout.addWidget(self.showButton, 2, 2, 1, 1)
-        self.resetButton = QtGui.QToolButton(PostNAS_SearchDialogBase)
+        self.resetButton = QToolButton(PostNAS_SearchDialogBase)
         self.resetButton.setEnabled(False)
-        icon1 = QtGui.QIcon()
+        icon1 = QIcon()
         icon1.addPixmap(QtGui.QPixmap(_fromUtf8(":/plugins/PostNAS_Search/marker-delete.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.resetButton.setIcon(icon1)
         self.resetButton.setObjectName(_fromUtf8("resetButton"))

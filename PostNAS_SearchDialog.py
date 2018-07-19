@@ -200,6 +200,7 @@ class PostNAS_SearchDialog(QDialog, Ui_PostNAS_SearchDialogBase):
         self.resetSuchergebnisLayer()
         self.showButton.setEnabled(False)
         self.resetButton.setEnabled(False)
+        self.iface.mapCanvas().refresh()
 
     def treeLoadGemarkung(self,item):
         if(item.childCount() == 0):

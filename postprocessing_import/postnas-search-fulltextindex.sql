@@ -1,32 +1,32 @@
 BEGIN;
-	/* alte Einträge löschen */
+	/* alte EintrÃ¤ge lÃ¶schen */
 	DELETE FROM postnas_search;
 	
-	/* aktuelle Flurstücke verarbeiten */
+	/* aktuelle FlurstÃ¼cke verarbeiten */
 	INSERT INTO postnas_search (
 	SELECT ax_flurstueck.gml_id,'flurstueck_aktuell',
 		to_tsvector('german'::regconfig, 
 			/* Mit leerzeichen getrennt */
 			CASE WHEN ax_flurstueck.gemarkungsnummer IS NULL THEN '0000' ELSE ax_flurstueck.gemarkungsnummer END || ' ' ||
 			CASE WHEN ax_flurstueck.flurnummer IS NULL THEN '000' ELSE ax_flurstueck.flurnummer END || ' ' ||
-			CASE WHEN ax_flurstueck.zaehler IS NULL THEN 0 ELSE ax_flurstueck.zaehler END || ' ' ||
+			CASE WHEN ax_flurstueck.zaehler IS NULL THEN '0' ELSE ax_flurstueck.zaehler END || ' ' ||
 			CASE WHEN ax_flurstueck.nenner IS NULL THEN '' ELSE ax_flurstueck.nenner END || ' ' ||
-			/* Ohne leerzeichen getrennt ohne führende Nullen */
+			/* Ohne leerzeichen getrennt ohne fÃ¼hrende Nullen */
 			CASE WHEN ax_flurstueck.gemarkungsnummer IS NULL THEN '0000' ELSE ax_flurstueck.gemarkungsnummer END ||
 			CASE WHEN ax_flurstueck.flurnummer IS NULL THEN '000' ELSE ax_flurstueck.flurnummer END ||
-			CASE WHEN ax_flurstueck.zaehler IS NULL THEN 0 ELSE ax_flurstueck.zaehler END ||
+			CASE WHEN ax_flurstueck.zaehler IS NULL THEN '0' ELSE ax_flurstueck.zaehler END ||
 			CASE WHEN ax_flurstueck.nenner IS NULL THEN '' ELSE ax_flurstueck.nenner END || ' ' ||
-			/* Ohne leerzeichen getrennt mit führende Nullen */
+			/* Ohne leerzeichen getrennt mit fÃ¼hrende Nullen */
 			CASE WHEN ax_flurstueck.gemarkungsnummer IS NULL THEN '0000' ELSE lpad(ax_flurstueck.gemarkungsnummer::text, 4, '0'::text) END ||
 			CASE WHEN ax_flurstueck.flurnummer IS NULL THEN '000' ELSE lpad(ax_flurstueck.flurnummer::text, 3, '0'::text) END ||
 			CASE WHEN ax_flurstueck.zaehler IS NULL THEN '' ELSE lpad(ax_flurstueck.zaehler::text, 5, '0'::text) END ||
 			CASE WHEN ax_flurstueck.nenner IS NULL THEN '' ELSE lpad(ax_flurstueck.nenner::text, 3, '0'::text) END || ' ' ||
-			/* Mit Trennzeichen - ohne führende Nullen */
+			/* Mit Trennzeichen - ohne fÃ¼hrende Nullen */
 			CASE WHEN ax_flurstueck.gemarkungsnummer IS NULL THEN '0000' ELSE ax_flurstueck.gemarkungsnummer END || '-' ||
 			CASE WHEN ax_flurstueck.flurnummer IS NULL THEN '000' ELSE ax_flurstueck.flurnummer END || '-' ||
-			CASE WHEN ax_flurstueck.zaehler IS NULL THEN 0 ELSE ax_flurstueck.zaehler END || '-' ||
+			CASE WHEN ax_flurstueck.zaehler IS NULL THEN '0' ELSE ax_flurstueck.zaehler END || '-' ||
 			CASE WHEN ax_flurstueck.nenner IS NULL THEN '' ELSE '/' || ax_flurstueck.nenner END || ' ' ||
-			/* Mit Trennzeichen - mit führende Nullen */
+			/* Mit Trennzeichen - mit fÃ¼hrende Nullen */
 			CASE WHEN ax_flurstueck.gemarkungsnummer IS NULL THEN '0000' ELSE lpad(ax_flurstueck.gemarkungsnummer::text, 4, '0'::text) END || '-' ||
 			CASE WHEN ax_flurstueck.flurnummer IS NULL THEN '000' ELSE lpad(ax_flurstueck.flurnummer::text, 3, '0'::text) END || '-' ||
 			CASE WHEN ax_flurstueck.zaehler IS NULL THEN '' ELSE lpad(ax_flurstueck.zaehler::text, 5, '0'::text) END || '-' ||
@@ -37,7 +37,7 @@ BEGIN;
 	LEFT JOIN ax_gemarkung ON ax_flurstueck.land::text = ax_gemarkung.land::text AND ax_flurstueck.gemarkungsnummer::text = ax_gemarkung.gemarkungsnummer::text AND ax_gemarkung.endet IS NULL
 	WHERE ax_flurstueck.endet IS NULL);
 	
-	/* historische Flurstücke verarbeiten */
+	/* historische FlurstÃ¼cke verarbeiten */
 	INSERT INTO postnas_search (
 		SELECT ax_historischesflurstueck.gml_id,'flurstueck_historisch',
 			to_tsvector('german'::regconfig,
@@ -46,22 +46,22 @@ BEGIN;
 				CASE WHEN ax_historischesflurstueck.flurnummer IS NULL THEN '000' ELSE ax_historischesflurstueck.flurnummer END || ' ' ||
 				CASE WHEN ax_historischesflurstueck.zaehler IS NULL THEN '' ELSE ax_historischesflurstueck.zaehler END || ' ' ||
 				CASE WHEN ax_historischesflurstueck.nenner IS NULL THEN '' ELSE ax_historischesflurstueck.nenner END || ' ' ||
-				/* Ohne leerzeichen getrennt ohne führende Nullen */
+				/* Ohne leerzeichen getrennt ohne fÃ¼hrende Nullen */
 				CASE WHEN ax_historischesflurstueck.gemarkungsnummer IS NULL THEN '0000' ELSE ax_historischesflurstueck.gemarkungsnummer END ||
 				CASE WHEN ax_historischesflurstueck.flurnummer IS NULL THEN '000' ELSE ax_historischesflurstueck.flurnummer END ||
 				CASE WHEN ax_historischesflurstueck.zaehler IS NULL THEN '' ELSE ax_historischesflurstueck.zaehler END ||
 				CASE WHEN ax_historischesflurstueck.nenner IS NULL THEN '' ELSE ax_historischesflurstueck.nenner END || ' ' ||
-				/* Ohne leerzeichen getrennt mit führende Nullen */
+				/* Ohne leerzeichen getrennt mit fÃ¼hrende Nullen */
 				CASE WHEN ax_historischesflurstueck.gemarkungsnummer IS NULL THEN '0000' ELSE lpad(ax_historischesflurstueck.gemarkungsnummer::text, 4, '0'::text) END ||
 				CASE WHEN ax_historischesflurstueck.flurnummer IS NULL THEN '000' ELSE lpad(ax_historischesflurstueck.flurnummer::text, 3, '0'::text) END ||
 				CASE WHEN ax_historischesflurstueck.zaehler IS NULL THEN '' ELSE lpad(ax_historischesflurstueck.zaehler::text, 5, '0'::text) END ||
 				CASE WHEN ax_historischesflurstueck.nenner IS NULL THEN '' ELSE lpad(ax_historischesflurstueck.nenner::text, 3, '0'::text) END || ' ' ||
-				/* Mit Trennzeichen - ohne führende Nullen */
+				/* Mit Trennzeichen - ohne fÃ¼hrende Nullen */
 				CASE WHEN ax_historischesflurstueck.gemarkungsnummer IS NULL THEN '0000' ELSE ax_historischesflurstueck.gemarkungsnummer END || '-' ||
 				CASE WHEN ax_historischesflurstueck.flurnummer IS NULL THEN '000' ELSE ax_historischesflurstueck.flurnummer END || '-' ||
 				CASE WHEN ax_historischesflurstueck.zaehler IS NULL THEN '' ELSE ax_historischesflurstueck.zaehler END || '-' ||
 				CASE WHEN ax_historischesflurstueck.nenner IS NULL THEN '' ELSE '/' || ax_historischesflurstueck.nenner END || ' ' ||
-				/* Mit Trennzeichen - mit führende Nullen */
+				/* Mit Trennzeichen - mit fÃ¼hrende Nullen */
 				CASE WHEN ax_historischesflurstueck.gemarkungsnummer IS NULL THEN '0000' ELSE lpad(ax_historischesflurstueck.gemarkungsnummer::text, 4, '0'::text) END || '-' ||
 				CASE WHEN ax_historischesflurstueck.flurnummer IS NULL THEN '000' ELSE lpad(ax_historischesflurstueck.flurnummer::text, 3, '0'::text) END || '-' ||
 				CASE WHEN ax_historischesflurstueck.zaehler IS NULL THEN '' ELSE lpad(ax_historischesflurstueck.zaehler::text, 5, '0'::text) END || '-' ||
@@ -73,7 +73,7 @@ BEGIN;
 	LEFT JOIN ax_gemarkung ON ax_historischesflurstueck.land::text = ax_gemarkung.land::text AND ax_historischesflurstueck.gemarkungsnummer::text = ax_gemarkung.gemarkungsnummer::text AND ax_gemarkung.endet IS NULL
 	WHERE ax_historischesflurstueck.endet IS NULL);
 	
-	/* historische Flurstücke ohne Raumbezug verarbeiten */
+	/* historische FlurstÃ¼cke ohne Raumbezug verarbeiten */
 	INSERT INTO postnas_search (
 		SELECT ax_historischesflurstueckohneraumbezug.gml_id,'flurstueck_historisch_ungenau',
 			to_tsvector('german'::regconfig,
@@ -82,22 +82,22 @@ BEGIN;
 				CASE WHEN ax_historischesflurstueckohneraumbezug.flurnummer IS NULL THEN '000' ELSE ax_historischesflurstueckohneraumbezug.flurnummer END || ' ' ||
 				CASE WHEN ax_historischesflurstueckohneraumbezug.zaehler IS NULL THEN '' ELSE ax_historischesflurstueckohneraumbezug.zaehler END || ' ' ||
 				CASE WHEN ax_historischesflurstueckohneraumbezug.nenner IS NULL THEN '' ELSE ax_historischesflurstueckohneraumbezug.nenner END || ' ' ||
-				/* Ohne leerzeichen getrennt ohne führende Nullen */
+				/* Ohne leerzeichen getrennt ohne fÃ¼hrende Nullen */
 				CASE WHEN ax_historischesflurstueckohneraumbezug.gemarkungsnummer IS NULL THEN '0000' ELSE ax_historischesflurstueckohneraumbezug.gemarkungsnummer END ||
 				CASE WHEN ax_historischesflurstueckohneraumbezug.flurnummer IS NULL THEN '000' ELSE ax_historischesflurstueckohneraumbezug.flurnummer END ||
 				CASE WHEN ax_historischesflurstueckohneraumbezug.zaehler IS NULL THEN '' ELSE ax_historischesflurstueckohneraumbezug.zaehler END ||
 				CASE WHEN ax_historischesflurstueckohneraumbezug.nenner IS NULL THEN '' ELSE ax_historischesflurstueckohneraumbezug.nenner END || ' ' ||
-				/* Ohne leerzeichen getrennt mit führende Nullen */
+				/* Ohne leerzeichen getrennt mit fÃ¼hrende Nullen */
 				CASE WHEN ax_historischesflurstueckohneraumbezug.gemarkungsnummer IS NULL THEN '0000' ELSE lpad(ax_historischesflurstueckohneraumbezug.gemarkungsnummer::text, 4, '0'::text) END ||
 				CASE WHEN ax_historischesflurstueckohneraumbezug.flurnummer IS NULL THEN '000' ELSE lpad(ax_historischesflurstueckohneraumbezug.flurnummer::text, 3, '0'::text) END ||
 				CASE WHEN ax_historischesflurstueckohneraumbezug.zaehler IS NULL THEN '' ELSE lpad(ax_historischesflurstueckohneraumbezug.zaehler::text, 5, '0'::text) END ||
 				CASE WHEN ax_historischesflurstueckohneraumbezug.nenner IS NULL THEN '' ELSE lpad(ax_historischesflurstueckohneraumbezug.nenner::text, 3, '0'::text) END || ' ' ||
-				/* Mit Trennzeichen - ohne führende Nullen */
+				/* Mit Trennzeichen - ohne fÃ¼hrende Nullen */
 				CASE WHEN ax_historischesflurstueckohneraumbezug.gemarkungsnummer IS NULL THEN '0000' ELSE ax_historischesflurstueckohneraumbezug.gemarkungsnummer END || '-' ||
 				CASE WHEN ax_historischesflurstueckohneraumbezug.flurnummer IS NULL THEN '000' ELSE ax_historischesflurstueckohneraumbezug.flurnummer END || '-' ||
 				CASE WHEN ax_historischesflurstueckohneraumbezug.zaehler IS NULL THEN '' ELSE ax_historischesflurstueckohneraumbezug.zaehler END || '-' ||
 				CASE WHEN ax_historischesflurstueckohneraumbezug.nenner IS NULL THEN '' ELSE '/' || ax_historischesflurstueckohneraumbezug.nenner END || ' ' ||
-				/* Mit Trennzeichen - mit führende Nullen */
+				/* Mit Trennzeichen - mit fÃ¼hrende Nullen */
 				CASE WHEN ax_historischesflurstueckohneraumbezug.gemarkungsnummer IS NULL THEN '0000' ELSE lpad(ax_historischesflurstueckohneraumbezug.gemarkungsnummer::text, 4, '0'::text) END || '-' ||
 				CASE WHEN ax_historischesflurstueckohneraumbezug.flurnummer IS NULL THEN '000' ELSE lpad(ax_historischesflurstueckohneraumbezug.flurnummer::text, 3, '0'::text) END || '-' ||
 				CASE WHEN ax_historischesflurstueckohneraumbezug.zaehler IS NULL THEN '' ELSE lpad(ax_historischesflurstueckohneraumbezug.zaehler::text, 5, '0'::text) END || '-' ||
@@ -109,7 +109,7 @@ BEGIN;
 	LEFT JOIN ax_gemarkung ON ax_historischesflurstueckohneraumbezug.land::text = ax_gemarkung.land::text AND ax_historischesflurstueckohneraumbezug.gemarkungsnummer::text = ax_gemarkung.gemarkungsnummer::text AND ax_gemarkung.endet IS NULL
 	WHERE ax_historischesflurstueckohneraumbezug.endet IS NULL);
 	
-	/* Straßennamen */
+	/* StraÃŸennamen */
 	INSERT INTO postnas_search (
 		SELECT 
 			ax_lagebezeichnungmithausnummer.gml_id,'adresse',
@@ -120,7 +120,7 @@ BEGIN;
 		WHERE ax_lagebezeichnungkatalogeintrag.endet IS NULL
 	);
 	
-	/* Eigentümer */
+	/* EigentÃ¼mer */
 	INSERT INTO postnas_search (
 		SELECT 
 			gml_id,'eigentuemer',

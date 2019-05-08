@@ -77,7 +77,7 @@ class PostNAS_SearchDialog(QDialog, Ui_PostNAS_SearchDialogBase):
 
             if(self.checkPostnasSeachTable() == False):
                 if(self.indexWarning == True):
-                    QMessageBox.warning(None,"Suche beschleunigen",u"Auf der ALKIS-Datenbank ist kein Volltextindex für die Suche vorhanden. Dieser kann die Suchperformance deutlich erhöhen. .\r\nDer Volltextindes unter\r\n    \"Datenbank -> PostNAS-Suche -> Volltextindex erstellen\"\r\nerstellen werden.")
+                    QMessageBox.warning(None,"Suche beschleunigen",u"Auf der ALKIS-Datenbank ist kein Volltextindex für die Suche vorhanden. Dieser kann die Suchperformance deutlich erhöhen.\r\nDer Volltextindes unter\r\n    \"Datenbank -> PostNAS-Suche -> Volltextindex erstellen\"\r\nerstellen werden.")
                     self.indexWarning = False
             else:
                 self.indexWarning = False

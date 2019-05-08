@@ -33,14 +33,14 @@ class PostNAS_CreateFulltextindex(QDialog):
     def exec_(self):
         self.openDialog()
         self.createFulltextindex()
-        self.coloseDialog()
+        self.closeDialog()
 
     def openDialog(self):
         self.dialog.setModal(True)
         self.dialog.show()
         QApplication.processEvents()
 
-    def coloseDialog(self):
+    def closeDialog(self):
         self.dialog.close()
 
     def createFulltextindex(self):

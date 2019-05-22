@@ -277,7 +277,12 @@ class PostNAS_AccessControl:
 
         if authcfg != "" and hasattr(qgis.core,'QgsAuthManager'):
             amc = qgis.core.QgsAuthMethodConfig()
-            qgis.core.QgsAuthManager.instance().loadAuthenticationConfig( authcfg, amc, True)
+
+            if hasattr(qgis.core, "QGis"):
+                qgis.core.QgsAuthManager.instance().loadAuthenticationConfig( authcfg, amc, True)
+            else:
+                QgsApplication.instance().authManager().loadAuthenticationConfig( authcfg, amc, True)
+
             dbUsername = amc.config( "username", dbUsername )
             dbPassword = amc.config( "password", dbPassword )
 

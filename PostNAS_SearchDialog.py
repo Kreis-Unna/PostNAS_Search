@@ -1040,7 +1040,12 @@ class PostNAS_SearchDialog(QDialog, Ui_PostNAS_SearchDialogBase):
 
         if authcfg != "" and hasattr(qgis.core,'QgsAuthManager'):
             amc = qgis.core.QgsAuthMethodConfig()
-            qgis.core.QgsAuthManager.instance().loadAuthenticationConfig( authcfg, amc, True)
+
+            if qgis3:
+                QgsApplication.instance().authManager().loadAuthenticationConfig( authcfg, amc, True)
+            else:
+                qgis.core.QgsAuthManager.instance().loadAuthenticationConfig( authcfg, amc, True)
+
             self.dbUsername = amc.config( "username", self.dbUsername )
             self.dbPassword = amc.config( "password", self.dbPassword )
 

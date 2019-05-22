@@ -25,6 +25,8 @@ from qgis.PyQt.QtWidgets import QMessageBox,QDialog,QApplication,QTreeWidgetItem
 from qgis.PyQt import QtGui, uic, QtCore
 from qgis.core import *
 import qgis.core
+import json
+import os
 
 from .PostNAS_SearchDialogBase import Ui_PostNAS_SearchDialogBase
 from .PostNAS_AccessControl import PostNAS_AccessControl
@@ -1028,24 +1030,33 @@ class PostNAS_SearchDialog(QDialog, Ui_PostNAS_SearchDialogBase):
             self.map.removeMapLayer(self.map.mapLayersByName("Suchergebnis")[0].id())
 
     def loadDbSettings(self):
-        settings = QSettings("PostNAS", "PostNAS-Suche")
+        if os.path.isfile(os.path.dirname(os.path.realpath(__file__)) + '\config.json'):
+            with open(os.path.dirname(os.path.realpath(__file__)) + '\config.json') as config_file:
+                config = json.load(config_file)
+            self.dbHost = config['db']['host']
+            self.dbDatabasename = config['db']['database']
+            self.dbPort = config['db']['port']
+            self.dbUsername = config['db']['user']
+            self.dbPassword = config['db']['password']
 
-        self.dbHost = settings.value("host", "")
-        self.dbDatabasename = settings.value("dbname", "")
-        self.dbPort = settings.value("port", "5432")
-        self.dbUsername = settings.value("user", "")
-        self.dbPassword = settings.value("password", "")
+            authcfg = config['authcfg']
+        else:
+            settings = QSettings("PostNAS", "PostNAS-Suche")
 
-        authcfg = settings.value( "authcfg", "" )
+            self.dbHost = settings.value("host", "")
+            self.dbDatabasename = settings.value("dbname", "")
+            self.dbPort = settings.value("port", "5432")
+            self.dbUsername = settings.value("user", "")
+            self.dbPassword = settings.value("password", "")
+
+            authcfg = settings.value( "authcfg", "" )
 
         if authcfg != "" and hasattr(qgis.core,'QgsAuthManager'):
             amc = qgis.core.QgsAuthMethodConfig()
-
-            if qgis3:
-                QgsApplication.instance().authManager().loadAuthenticationConfig( authcfg, amc, True)
-            else:
+            if qgis3: 
+                QgsApplication.instance().authManager().loadAuthenticationConfig( authcfg, amc, True) 
+            else: 
                 qgis.core.QgsAuthManager.instance().loadAuthenticationConfig( authcfg, amc, True)
-
             self.dbUsername = amc.config( "username", self.dbUsername )
             self.dbPassword = amc.config( "password", self.dbPassword )
 

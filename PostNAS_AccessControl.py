@@ -17,6 +17,7 @@
 """
 import os
 import getpass
+import json
 from qgis.PyQt.QtCore import QSettings
 from qgis.PyQt.QtSql import QSqlDatabase, QSqlQuery
 from qgis.PyQt.QtWidgets import QMessageBox
@@ -68,23 +69,33 @@ class PostNAS_AccessControl:
         pass
 
     def checkAccessControlIsActive(self):
-        settings = QSettings("PostNAS", "PostNAS-Suche")
-        if(settings.contains("accessControl") == True):
-            if(settings.value("accessControl",0) == 1):
-                if(self.checkAccessTable() == False):
-                    settings.setValue("accessControl",0)
-                    return False
-                else:
-                    return True
-            else:
-                return False
+        if os.path.isfile(os.path.dirname(os.path.realpath(__file__)) + '\config.json'):
+            with open(os.path.dirname(os.path.realpath(__file__)) + '\config.json') as config_file:
+                config = json.load(config_file)
+            accessControl = config['accessControl']
+            pass
         else:
-            if(self.checkAccessTable() == True):
-                settings.setValue("accessControl",1)
-                return True
-            else:
-                settings.setValue("accessControl",0)
-                return False
+            settings = QSettings("PostNAS", "PostNAS-Suche")
+            accessControl = settings.value("accessControl")
+
+        if(accessControl == 1):
+            if (self.checkAccessTable() == False):
+                accessControl = 0
+        else:
+            if (self.checkAccessTable() == True):
+                accessControl = 1
+
+        if os.path.isfile(os.path.dirname(os.path.realpath(__file__)) + '\config.json'):
+            config['accessControl'] = accessControl
+            with open(os.path.dirname(os.path.realpath(__file__)) + '\config.json', 'w') as config_file:
+                json.dump(config, config_file)
+        else:
+            settings.setValue("accessControl", accessControl)
+
+        if(accessControl == 1):
+            return True
+        else:
+            return False
 
     def checkAccessTable(self):
         sql = "SELECT table_name FROM information_schema.tables WHERE table_name = 'postnas_search_access_control'";
@@ -265,24 +276,33 @@ class PostNAS_AccessControl:
             return False
 
     def __loadDB(self):
-        settings = QSettings("PostNAS", "PostNAS-Suche")
+        if os.path.isfile(os.path.dirname(os.path.realpath(__file__)) + '\config.json'):
+            with open(os.path.dirname(os.path.realpath(__file__)) + '\config.json') as config_file:
+                config = json.load(config_file)
 
-        dbHost = settings.value("host", "")
-        dbDatabasename = settings.value("dbname", "")
-        dbPort = settings.value("port", "5432")
-        dbUsername = settings.value("user", "")
-        dbPassword = settings.value("password", "")
+            dbHost = config['db']['host']
+            dbDatabasename = config['db']['database']
+            dbPort = config['db']['port']
+            dbUsername = config['db']['user']
+            dbPassword = config['db']['password']
+            authcfg = config['authcfg']
+        else:
+            settings = QSettings("PostNAS", "PostNAS-Suche")
 
-        authcfg = settings.value( "authcfg", "" )
+            dbHost = settings.value("host", "")
+            dbDatabasename = settings.value("dbname", "")
+            dbPort = settings.value("port", "5432")
+            dbUsername = settings.value("user", "")
+            dbPassword = settings.value("password", "")
+
+            authcfg = settings.value( "authcfg", "" )
 
         if authcfg != "" and hasattr(qgis.core,'QgsAuthManager'):
             amc = qgis.core.QgsAuthMethodConfig()
-
-            if hasattr(qgis.core, "QGis"):
-                qgis.core.QgsAuthManager.instance().loadAuthenticationConfig( authcfg, amc, True)
-            else:
+            if hasattr(qgis.core, "QGis"): 
+                qgis.core.QgsAuthManager.instance().loadAuthenticationConfig( authcfg, amc, True) 
+            else: 
                 QgsApplication.instance().authManager().loadAuthenticationConfig( authcfg, amc, True)
-
             dbUsername = amc.config( "username", dbUsername )
             dbPassword = amc.config( "password", dbPassword )
 

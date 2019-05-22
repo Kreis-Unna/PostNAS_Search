@@ -24,6 +24,7 @@ from qgis.PyQt.QtSql import *
 from qgis.PyQt.QtWidgets import *
 from qgis.core import *
 import qgis.core
+import json
 
 class PostNAS_CreateFulltextindex(QDialog):
     def __init__(self, iface, parent=None):
@@ -96,15 +97,26 @@ class PostNAS_CreateFulltextindex(QDialog):
             return False
 
     def loadDbSettings(self):
-        settings = QSettings("PostNAS", "PostNAS-Suche")
+        if os.path.isfile(os.path.dirname(os.path.realpath(__file__)) + '\config.json'):
+            with open(os.path.dirname(os.path.realpath(__file__)) + '\config.json') as config_file:
+                config = json.load(config_file)
+            self.dbHost = config['db']['host']
+            self.dbDatabasename = config['db']['database']
+            self.dbPort = config['db']['port']
+            self.dbUsername = config['db']['user']
+            self.dbPassword = config['db']['password']
 
-        self.dbHost = settings.value("host", "")
-        self.dbDatabasename = settings.value("dbname", "")
-        self.dbPort = settings.value("port", "5432")
-        self.dbUsername = settings.value("user", "")
-        self.dbPassword = settings.value("password", "")
+            authcfg = config['authcfg']
+        else:
+            settings = QSettings("PostNAS", "PostNAS-Suche")
 
-        authcfg = settings.value( "authcfg", "" )
+            self.dbHost = settings.value("host", "")
+            self.dbDatabasename = settings.value("dbname", "")
+            self.dbPort = settings.value("port", "5432")
+            self.dbUsername = settings.value("user", "")
+            self.dbPassword = settings.value("password", "")
+
+            authcfg = settings.value( "authcfg", "" )
 
         if authcfg != "" and hasattr(qgis.core,'QgsAuthManager'):
             amc = qgis.core.QgsAuthMethodConfig()

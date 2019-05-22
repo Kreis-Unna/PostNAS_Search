@@ -17,6 +17,7 @@
 """
 
 import os
+import json
 from qgis.PyQt import QtGui,uic
 from qgis.PyQt.QtWidgets import QDialog,QMessageBox,QTableWidget,QTableWidgetItem
 from qgis.PyQt.QtCore import *
@@ -30,17 +31,30 @@ class PostNAS_ConfDialog(QDialog, FORM_CLASS):
         super(PostNAS_ConfDialog, self).__init__(parent)
         self.setupUi(self)
         self.accessControl = PostNAS_AccessControl()
-        settings = QSettings("PostNAS", "PostNAS-Suche")
-        self.leHOST.setText(settings.value("host", ""))
-        self.lePORT.setText(settings.value("port", "5432"))
-        self.leDBNAME.setText(settings.value("dbname", ""))
-        self.leUID.setText(settings.value("user", ""))
-        self.lePWD.setText(settings.value("password", ""))
+
+        if os.path.isfile(os.path.dirname(os.path.realpath(__file__)) + '\config.json'):
+            with open(os.path.dirname(os.path.realpath(__file__)) + '\config.json') as config_file:
+                config = json.load(config_file)
+            self.leHOST.setText(config['db']['host'])
+            self.lePORT.setText(config['db']['port'])
+            self.leDBNAME.setText(config['db']['database'])
+            self.leUID.setText(config['db']['user'])
+            self.lePWD.setText(config['db']['password'])
+        else:
+            settings = QSettings("PostNAS", "PostNAS-Suche")
+            self.leHOST.setText(settings.value("host", ""))
+            self.lePORT.setText(settings.value("port", "5432"))
+            self.leDBNAME.setText(settings.value("dbname", ""))
+            self.leUID.setText(settings.value("user", ""))
+            self.lePWD.setText(settings.value("password", ""))
 
         if hasattr(qgis.gui,'QgsAuthConfigSelect'):
             self.authCfgSelect = qgis.gui.QgsAuthConfigSelect( self, "postgres" )
             self.tabWidget.insertTab( 1, self.authCfgSelect, "Konfigurationen" )
-            authcfg = settings.value( "authcfg", "" )
+            if os.path.isfile(os.path.dirname(os.path.realpath(__file__)) + '\config.json'):
+                authcfg = config["authcfg"]
+            else:
+                authcfg = settings.value( "authcfg", "" )
             if authcfg:
                 self.tabWidget.setCurrentIndex( 1 )
                 self.authCfgSelect.setConfigId( authcfg )
@@ -55,20 +69,40 @@ class PostNAS_ConfDialog(QDialog, FORM_CLASS):
             self.checkBox.setCheckState(Qt.Checked)
 
     def on_buttonBox_accepted(self):
-        settings = QSettings("PostNAS", "PostNAS-Suche")
-        settings.setValue("host", self.leHOST.text())
-        settings.setValue("port", self.lePORT.text())
-        settings.setValue("dbname", self.leDBNAME.text())
-        settings.setValue("user", self.leUID.text())
-        settings.setValue("password", self.lePWD.text())
+        if os.path.isfile(os.path.dirname(os.path.realpath(__file__)) + '\config.json'):
+            config = {}
+            config['db'] = {}
+            config['db']['host'] = self.leHOST.text()
+            config['db']['port'] = self.lePORT.text()
+            config['db']['database'] = self.leDBNAME.text()
+            config['db']['user'] = self.leUID.text()
+            config['db']['password'] = self.lePWD.text()
 
-        if hasattr(qgis.gui,'QgsAuthConfigSelect'):
-            settings.setValue( "authcfg", self.authCfgSelect.configId() )
+            if hasattr(qgis.gui, 'QgsAuthConfigSelect'):
+                config['authcfg'] = self.authCfgSelect.configId()
 
-        if(self.checkBox.checkState() == Qt.Checked):
-            settings.setValue("accessControl",1)
+            if (self.checkBox.checkState() == Qt.Checked):
+                config['accessControl'] = 1
+            else:
+                config['accessControl'] = 0
+
+            with open(os.path.dirname(os.path.realpath(__file__)) + '\config.json', 'w') as config_file:
+                json.dump(config, config_file)
         else:
-            settings.setValue("accessControl",0)
+            settings = QSettings("PostNAS", "PostNAS-Suche")
+            settings.setValue("host", self.leHOST.text())
+            settings.setValue("port", self.lePORT.text())
+            settings.setValue("dbname", self.leDBNAME.text())
+            settings.setValue("user", self.leUID.text())
+            settings.setValue("password", self.lePWD.text())
+
+            if hasattr(qgis.gui,'QgsAuthConfigSelect'):
+                settings.setValue( "authcfg", self.authCfgSelect.configId() )
+
+            if(self.checkBox.checkState() == Qt.Checked):
+                settings.setValue("accessControl",1)
+            else:
+                settings.setValue("accessControl",0)
 
         QDialog.accept(self)
 

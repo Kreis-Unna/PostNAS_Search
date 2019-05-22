@@ -21,6 +21,7 @@ from qgis.PyQt.QtSql import QSqlDatabase, QSqlQuery
 from .PostNAS_AccessControl import PostNAS_AccessControl
 from qgis.core import *
 import qgis.core
+import json
 
 class PostNAS_Logging:
     def __init__(self):
@@ -86,24 +87,33 @@ class PostNAS_Logging:
             return False
 
     def __loadDB(self):
-        settings = QSettings("PostNAS", "PostNAS-Suche")
+        if os.path.isfile(os.path.dirname(os.path.realpath(__file__)) + '\config.json'):
+            with open(os.path.dirname(os.path.realpath(__file__)) + '\config.json') as config_file:
+                config = json.load(config_file)
+            dbHost = config['db']['host']
+            dbDatabasename = config['db']['database']
+            dbPort = config['db']['port']
+            dbUsername = config['db']['user']
+            dbPassword = config['db']['password']
 
-        dbHost = settings.value("host", "")
-        dbDatabasename = settings.value("dbname", "")
-        dbPort = settings.value("port", "5432")
-        dbUsername = settings.value("user", "")
-        dbPassword = settings.value("password", "")
+            authcfg = config['authcfg']
+        else:
+            settings = QSettings("PostNAS", "PostNAS-Suche")
 
-        authcfg = settings.value( "authcfg", "" )
+            dbHost = settings.value("host", "")
+            dbDatabasename = settings.value("dbname", "")
+            dbPort = settings.value("port", "5432")
+            dbUsername = settings.value("user", "")
+            dbPassword = settings.value("password", "")
+
+            authcfg = settings.value( "authcfg", "" )
 
         if authcfg != "" and hasattr(qgis.core,'QgsAuthManager'):
             amc = qgis.core.QgsAuthMethodConfig()
-
             if hasattr(qgis.core, "QGis"):
-                qgis.core.QgsAuthManager.instance().loadAuthenticationConfig( authcfg, amc, True)
+                qgis.core.QgsAuthManager.instance().loadAuthenticationConfig( authcfg, amc, True) 
             else:
                 QgsApplication.instance().authManager().loadAuthenticationConfig( authcfg, amc, True)
-
             dbUsername = amc.config( "username", dbUsername )
             dbPassword = amc.config( "password", dbPassword )
 

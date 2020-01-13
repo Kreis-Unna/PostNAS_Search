@@ -519,13 +519,17 @@ class PostNAS_SearchDialog(QDialog, Ui_PostNAS_SearchDialogBase):
                 JOIN ax_lagebezeichnungmithausnummer ON postnas_search.gml_id = ax_lagebezeichnungmithausnummer.gml_id \
                 JOIN ax_lagebezeichnungkatalogeintrag ON ax_lagebezeichnungkatalogeintrag.land = ax_lagebezeichnungmithausnummer.land AND ax_lagebezeichnungkatalogeintrag.regierungsbezirk = ax_lagebezeichnungmithausnummer.regierungsbezirk AND ax_lagebezeichnungkatalogeintrag.kreis = ax_lagebezeichnungmithausnummer.kreis AND ax_lagebezeichnungkatalogeintrag.gemeinde = ax_lagebezeichnungmithausnummer.gemeinde AND ax_lagebezeichnungkatalogeintrag.lage = ax_lagebezeichnungmithausnummer.lage \
                 JOIN ax_gemeinde ON ax_lagebezeichnungkatalogeintrag.land = ax_gemeinde.land AND ax_lagebezeichnungkatalogeintrag.regierungsbezirk = ax_gemeinde.regierungsbezirk AND ax_lagebezeichnungkatalogeintrag.kreis = ax_gemeinde.kreis AND ax_lagebezeichnungkatalogeintrag.gemeinde = ax_gemeinde.gemeinde AND ax_gemeinde.endet IS NULL \
-                WHERE vector @@ to_tsquery('german', '"+self.getSearchStringAdresse()+"') AND ax_gemeinde.bezeichnung = '"+item.parent().text(0)+"' AND ax_lagebezeichnungkatalogeintrag.bezeichnung = '"+item.text(0)+"' ORDER BY regexp_replace(ax_lagebezeichnungmithausnummer.hausnummer,'[^0-9]','','g')::int,hausnummer"
+                WHERE vector @@ to_tsquery('german', '"+self.getSearchStringAdresse()+"') AND ax_gemeinde.bezeichnung = '"+item.parent().text(0)+"' AND ax_lagebezeichnungkatalogeintrag.bezeichnung = '"+item.text(0)+"' \
+                    AND ax_lagebezeichnungkatalogeintrag.endet IS NULL \
+                ORDER BY regexp_replace(ax_lagebezeichnungmithausnummer.hausnummer,'[^0-9]','','g')::int,hausnummer"
             else:
                 sqlHausnummer = "SELECT ax_lagebezeichnungmithausnummer.gml_id,ax_lagebezeichnungmithausnummer.hausnummer \
                 FROM ax_lagebezeichnungmithausnummer \
                 JOIN ax_lagebezeichnungkatalogeintrag ON ax_lagebezeichnungkatalogeintrag.land = ax_lagebezeichnungmithausnummer.land AND ax_lagebezeichnungkatalogeintrag.regierungsbezirk = ax_lagebezeichnungmithausnummer.regierungsbezirk AND ax_lagebezeichnungkatalogeintrag.kreis = ax_lagebezeichnungmithausnummer.kreis AND ax_lagebezeichnungkatalogeintrag.gemeinde = ax_lagebezeichnungmithausnummer.gemeinde AND ax_lagebezeichnungkatalogeintrag.lage = ax_lagebezeichnungmithausnummer.lage \
                 JOIN ax_gemeinde ON ax_lagebezeichnungkatalogeintrag.land = ax_gemeinde.land AND ax_lagebezeichnungkatalogeintrag.regierungsbezirk = ax_gemeinde.regierungsbezirk AND ax_lagebezeichnungkatalogeintrag.kreis = ax_gemeinde.kreis AND ax_lagebezeichnungkatalogeintrag.gemeinde = ax_gemeinde.gemeinde AND ax_gemeinde.endet IS NULL \
-                WHERE to_tsvector('german', ax_lagebezeichnungkatalogeintrag.bezeichnung || ' ' || reverse(ax_lagebezeichnungkatalogeintrag.bezeichnung::text) || ' ' || ax_lagebezeichnungmithausnummer.hausnummer || ' ' || ax_gemeinde.bezeichnung) @@ to_tsquery('german', '"+self.getSearchStringAdresse()+"') AND ax_gemeinde.bezeichnung = '"+item.parent().text(0)+"' AND ax_lagebezeichnungkatalogeintrag.bezeichnung = '"+item.text(0)+"' ORDER BY regexp_replace(ax_lagebezeichnungmithausnummer.hausnummer,'[^0-9]','','g')::int,hausnummer"
+                WHERE to_tsvector('german', ax_lagebezeichnungkatalogeintrag.bezeichnung || ' ' || reverse(ax_lagebezeichnungkatalogeintrag.bezeichnung::text) || ' ' || ax_lagebezeichnungmithausnummer.hausnummer || ' ' || ax_gemeinde.bezeichnung) @@ to_tsquery('german', '"+self.getSearchStringAdresse()+"') AND ax_gemeinde.bezeichnung = '"+item.parent().text(0)+"' AND ax_lagebezeichnungkatalogeintrag.bezeichnung = '"+item.text(0)+"' \
+                    AND ax_lagebezeichnungkatalogeintrag.endet IS NULL \
+                ORDER BY regexp_replace(ax_lagebezeichnungmithausnummer.hausnummer,'[^0-9]','','g')::int,hausnummer"
             query.exec_(sqlHausnummer)
             if(query.size() > 0):
                 fieldGmlID = query.record().indexOf("gml_id")
@@ -1053,9 +1057,9 @@ class PostNAS_SearchDialog(QDialog, Ui_PostNAS_SearchDialogBase):
 
         if authcfg != "" and hasattr(qgis.core,'QgsAuthManager'):
             amc = qgis.core.QgsAuthMethodConfig()
-            if qgis3: 
-                QgsApplication.instance().authManager().loadAuthenticationConfig( authcfg, amc, True) 
-            else: 
+            if qgis3:
+                QgsApplication.instance().authManager().loadAuthenticationConfig( authcfg, amc, True)
+            else:
                 qgis.core.QgsAuthManager.instance().loadAuthenticationConfig( authcfg, amc, True)
             self.dbUsername = amc.config( "username", self.dbUsername )
             self.dbPassword = amc.config( "password", self.dbPassword )

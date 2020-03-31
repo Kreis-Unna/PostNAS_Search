@@ -1,4 +1,4 @@
-CREATE TABLE postnas_search_logging
+CREATE TABLE public.postnas_search_logging
 (
   datum timestamp without time zone NOT NULL,
   username text NOT NULL,

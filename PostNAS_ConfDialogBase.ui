@@ -35,7 +35,28 @@
       <string>Datenbankeinstellungen</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="3" column="0" colspan="2">
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_10">
+        <property name="text">
+         <string>Port</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Datenbankname</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Schema</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0" colspan="2">
        <widget class="QTabWidget" name="tabWidget">
         <property name="currentIndex">
          <number>0</number>
@@ -80,17 +101,24 @@
         </widget>
        </widget>
       </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_2">
+      <item row="3" column="1">
+       <widget class="QLineEdit" name="leSCHEMA">
         <property name="text">
-         <string>Datenbankname</string>
+         <string>public</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="leHOST">
+        <property name="text">
+         <string/>
         </property>
        </widget>
       </item>
       <item row="1" column="1">
        <widget class="QLineEdit" name="lePORT">
         <property name="inputMask">
-         <string>99999; </string>
+         <string>99999</string>
         </property>
         <property name="text">
          <string>5432</string>
@@ -107,17 +135,10 @@
       <item row="2" column="1">
        <widget class="QLineEdit" name="leDBNAME"/>
       </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_10">
+      <item row="5" column="0">
+       <widget class="QPushButton" name="testConnectionButton">
         <property name="text">
-         <string>Port</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLineEdit" name="leHOST">
-        <property name="text">
-         <string/>
+         <string>Verbindung testen</string>
         </property>
        </widget>
       </item>

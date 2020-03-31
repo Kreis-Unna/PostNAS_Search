@@ -1,4 +1,4 @@
-CREATE TABLE postnas_search
+CREATE TABLE public.postnas_search
 (
   gml_id character(16),
   typ text,
@@ -9,5 +9,5 @@ WITH (
 );
 
 CREATE INDEX idx_postnas_search
-  ON postnas_search
+  ON public.postnas_search
   USING gin (vector);

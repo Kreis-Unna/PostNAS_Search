@@ -1,1 +1,1 @@
-{"db": {"host": "linux07123", "port": "5432", "database": "alkis", "user": "bsysqgissuche", "password": "bsysQGISSucheX"}, "authcfg": "", "accessControl": 0}
+{"db": {"host": "", "port": "5432", "database": "", "user": "", "password": "", "schema": "public"}, "authcfg": "", "accessControl": 0}

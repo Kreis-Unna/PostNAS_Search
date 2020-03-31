@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'PostNAS_SearchDialogBase.ui'
-#
-# Created: Thu Apr  7 17:06:05 2016
-#      by: PyQt4 UI code generator 4.10.4
-#
-# WARNING! All changes made in this file will be lost!
-
 from qgis.PyQt import QtCore, QtGui
 from qgis.PyQt.QtWidgets import QGridLayout, QTreeWidget, QLineEdit, QToolButton, QAbstractItemView, QApplication
 from qgis.PyQt.QtGui import QPixmap, QIcon

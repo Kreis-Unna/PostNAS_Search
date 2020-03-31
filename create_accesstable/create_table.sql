@@ -1,4 +1,4 @@
-CREATE TABLE postnas_search_access_control
+CREATE TABLE public.postnas_search_access_control
 (
   username text NOT NULL,
   name text,
@@ -10,7 +10,7 @@ WITH (
 );
 
 
-CREATE TABLE postnas_search_accessmode
+CREATE TABLE public.postnas_search_accessmode
 (
   id integer NOT NULL,
   bezeichnung text,
@@ -21,5 +21,5 @@ WITH (
 );
 
 
-INSERT INTO postnas_search_accessmode (id,bezeichnung) VALUES (0,'Admin');
-INSERT INTO postnas_search_accessmode (id,bezeichnung) VALUES (1,'Eigentümersuche');
+INSERT INTO public.postnas_search_accessmode (id,bezeichnung) VALUES (0,'Admin');
+INSERT INTO public.postnas_search_accessmode (id,bezeichnung) VALUES (1,'Eigentümersuche');

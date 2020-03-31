@@ -1,20 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-/***************************************************************************
-    PostNAS_Search
-    -------------------
-    Date                : June 2016
-    copyright          : (C) 2016 by Kreis-Unna
-    email                : marvin.kinberger@kreis-unna.de
- ***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
-"""
+
 import os
 import getpass
 import json
@@ -34,13 +19,14 @@ class PostNAS_AccessControl:
         self.name = None
         self.db = self.__loadDB()
 
-
     def setUsername(self,username):
         self.username = username
         if(self.checkUserExists()):
-            sql = "SELECT name,access FROM postnas_search_access_control WHERE lower(username) = :username"
+            sql = "SELECT name,access FROM public.postnas_search_access_control WHERE lower(username) = :username"
             self.__openDB()
             queryLoadUserData = QSqlQuery(self.db)
+            if (self.dbSchema.lower() != "public"):
+                sql = sql.replace("public.", self.dbSchema + ".")
             queryLoadUserData.prepare(sql)
             queryLoadUserData.bindValue(":username",self.getUsername())
             queryLoadUserData.exec_()
@@ -115,6 +101,8 @@ class PostNAS_AccessControl:
 
         self.__openDB()
         query = QSqlQuery(self.db)
+        if (self.dbSchema.lower() != "public"):
+            sql = sql.replace("public.", self.dbSchema + ".")
         query.exec_(sql)
 
         if(query.lastError().number() == -1):
@@ -123,9 +111,11 @@ class PostNAS_AccessControl:
             return False
 
     def checkAccessTableHasAdmin(self):
-        sql = "SELECT lower(username) FROM postnas_search_access_control WHERE access = 0";
+        sql = "SELECT lower(username) FROM public.postnas_search_access_control WHERE access = 0";
         self.__openDB()
         query = QSqlQuery(self.db)
+        if (self.dbSchema.lower() != "public"):
+            sql = sql.replace("public.", self.dbSchema + ".")
         query.exec_(sql)
         if(query.size() > 0):
             return True
@@ -135,8 +125,10 @@ class PostNAS_AccessControl:
     def insertUser(self):
         if(self.getUsername() != None):
             self.__openDB()
-            sql = "INSERT INTO postnas_search_access_control (username,name,access) VALUES (:username,:name,:access)"
+            sql = "INSERT INTO public.postnas_search_access_control (username,name,access) VALUES (:username,:name,:access)"
             query = QSqlQuery(self.db)
+            if (self.dbSchema.lower() != "public"):
+                sql = sql.replace("public.", self.dbSchema + ".")
             query.prepare(sql)
             query.bindValue(":username",self.getUsername().lower())
             query.bindValue(":name",self.name)
@@ -156,8 +148,10 @@ class PostNAS_AccessControl:
     def updateUser(self,username_old):
         if(self.getUsername() != None):
             self.__openDB()
-            sql = "UPDATE postnas_search_access_control SET username = :username, name = :name, access = :access WHERE username = :username_old"
+            sql = "UPDATE public.postnas_search_access_control SET username = :username, name = :name, access = :access WHERE username = :username_old"
             query = QSqlQuery(self.db)
+            if (self.dbSchema.lower() != "public"):
+                sql = sql.replace("public.", self.dbSchema + ".")
             query.prepare(sql)
             query.bindValue(":username",self.getUsername().lower())
             query.bindValue(":username_old",username_old)
@@ -175,8 +169,10 @@ class PostNAS_AccessControl:
     def checkUserIsAdmin(self):
         if(self.getUsername() != None):
             self.__openDB()
-            sql = "SELECT lower(username) as username FROM postnas_search_access_control WHERE access = 0 AND lower(username) = :username"
+            sql = "SELECT lower(username) as username FROM public.postnas_search_access_control WHERE access = 0 AND lower(username) = :username"
             query = QSqlQuery(self.db)
+            if (self.dbSchema.lower() != "public"):
+                sql = sql.replace("public.", self.dbSchema + ".")
             query.prepare(sql)
             query.bindValue(":username",self.getUsername())
             query.exec_()
@@ -194,8 +190,10 @@ class PostNAS_AccessControl:
     def checkUserHasEigentuemerAccess(self):
         if(self.getUsername() != None):
             self.__openDB()
-            sql = "SELECT lower(username) as username FROM postnas_search_access_control WHERE access IN (0,1) AND lower(username) = :username"
+            sql = "SELECT lower(username) as username FROM public.postnas_search_access_control WHERE access IN (0,1) AND lower(username) = :username"
             queryEigentuemerAccess = QSqlQuery(self.db)
+            if (self.dbSchema.lower() != "public"):
+                sql = sql.replace("public.", self.dbSchema + ".")
             queryEigentuemerAccess.prepare(sql)
             queryEigentuemerAccess.bindValue(":username",self.getUsername())
             queryEigentuemerAccess.exec_()
@@ -211,7 +209,9 @@ class PostNAS_AccessControl:
 
 
     def loadUserAccessTable(self):
-        sql = "SELECT lower(username) as username,name,bezeichnung FROM postnas_search_access_control LEFT JOIN postnas_search_accessmode ON postnas_search_access_control.access = postnas_search_accessmode.id";
+        sql = "SELECT lower(username) as username,name,bezeichnung FROM public.postnas_search_access_control LEFT JOIN public.postnas_search_accessmode ON postnas_search_access_control.access = postnas_search_accessmode.id";
+        if (self.dbSchema.lower() != "public"):
+            sql = sql.replace("public.", self.dbSchema + ".")
         self.__openDB()
         queryLoadAccessTable = QSqlQuery(self.db)
         queryLoadAccessTable.prepare(sql)
@@ -228,9 +228,11 @@ class PostNAS_AccessControl:
         return results
 
     def deleteUser(self):
-        sql = "DELETE FROM postnas_search_access_control WHERE lower(username) = :username"
+        sql = "DELETE FROM public.postnas_search_access_control WHERE lower(username) = :username"
         self.__openDB()
         queryDeleteUser = QSqlQuery(self.db)
+        if (self.dbSchema.lower() != "public"):
+            sql = sql.replace("public.", self.dbSchema + ".")
         queryDeleteUser.prepare(sql)
         queryDeleteUser.bindValue(":username",self.getUsername())
         queryDeleteUser.exec_()
@@ -242,9 +244,11 @@ class PostNAS_AccessControl:
             return False
 
     def getAccessModes(self):
-        sql = "SELECT id,bezeichnung FROM postnas_search_accessmode"
+        sql = "SELECT id,bezeichnung FROM public.postnas_search_accessmode"
         self.__openDB()
         queryLoadAccessModes = QSqlQuery(self.db)
+        if (self.dbSchema.lower() != "public"):
+            sql = sql.replace("public.", self.dbSchema + ".")
         queryLoadAccessModes.prepare(sql)
         queryLoadAccessModes.exec_()
 
@@ -259,10 +263,12 @@ class PostNAS_AccessControl:
 
 
     def checkUserExists(self):
-        sql = "SELECT lower(username) as username FROM postnas_search_access_control WHERE lower(username) = :username"
+        sql = "SELECT lower(username) as username FROM public.postnas_search_access_control WHERE lower(username) = :username"
 
         self.__openDB()
         queryCheckUserExists = QSqlQuery(self.db)
+        if (self.dbSchema.lower() != "public"):
+            sql = sql.replace("public.", self.dbSchema + ".")
         queryCheckUserExists.prepare(sql)
         queryCheckUserExists.bindValue(":username",self.getUsername())
         queryCheckUserExists.exec_()
@@ -282,6 +288,7 @@ class PostNAS_AccessControl:
 
             dbHost = config['db']['host']
             dbDatabasename = config['db']['database']
+            self.dbSchema = config['db']['schema']
             dbPort = config['db']['port']
             dbUsername = config['db']['user']
             dbPassword = config['db']['password']
@@ -291,6 +298,7 @@ class PostNAS_AccessControl:
 
             dbHost = settings.value("host", "")
             dbDatabasename = settings.value("dbname", "")
+            self.dbSchema = settings.value("schema", "public")
             dbPort = settings.value("port", "5432")
             dbUsername = settings.value("user", "")
             dbPassword = settings.value("password", "")

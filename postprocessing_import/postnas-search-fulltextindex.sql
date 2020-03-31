@@ -1,9 +1,9 @@
 BEGIN;
 	/* alte Einträge löschen */
-	DELETE FROM postnas_search;
+	DELETE FROM public.postnas_search;
 	
 	/* aktuelle Flurstücke verarbeiten */
-	INSERT INTO postnas_search (
+	INSERT INTO public.postnas_search (
 	SELECT ax_flurstueck.gml_id,'flurstueck_aktuell',
 		to_tsvector('german'::regconfig, 
 			/* Mit leerzeichen getrennt */
@@ -33,12 +33,12 @@ BEGIN;
 			CASE WHEN ax_flurstueck.nenner IS NULL THEN '' ELSE '/' || lpad(ax_flurstueck.nenner::text, 3, '0'::text) END || ' ' ||
 			/* Gemarkungsname */
 			CASE WHEN ax_gemarkung.bezeichnung IS NOT NULL THEN ax_gemarkung.bezeichnung ELSE '' END)
-	FROM ax_flurstueck 
-	LEFT JOIN ax_gemarkung ON ax_flurstueck.land::text = ax_gemarkung.land::text AND ax_flurstueck.gemarkungsnummer::text = ax_gemarkung.gemarkungsnummer::text AND ax_gemarkung.endet IS NULL
+	FROM public.ax_flurstueck
+	LEFT JOIN public.ax_gemarkung ON ax_flurstueck.land::text = ax_gemarkung.land::text AND ax_flurstueck.gemarkungsnummer::text = ax_gemarkung.gemarkungsnummer::text AND ax_gemarkung.endet IS NULL
 	WHERE ax_flurstueck.endet IS NULL);
 	
 	/* historische Flurstücke verarbeiten */
-	INSERT INTO postnas_search (
+	INSERT INTO public.postnas_search (
 		SELECT ax_historischesflurstueck.gml_id,'flurstueck_historisch',
 			to_tsvector('german'::regconfig,
 				/* Mit leerzeichen getrennt */
@@ -69,12 +69,12 @@ BEGIN;
 				/* Gemarkungsname */
 				CASE WHEN ax_gemarkung.bezeichnung IS NOT NULL THEN ax_gemarkung.bezeichnung ELSE '' END
 			)
-		FROM ax_historischesflurstueck 
-	LEFT JOIN ax_gemarkung ON ax_historischesflurstueck.land::text = ax_gemarkung.land::text AND ax_historischesflurstueck.gemarkungsnummer::text = ax_gemarkung.gemarkungsnummer::text AND ax_gemarkung.endet IS NULL
+		FROM public.ax_historischesflurstueck
+	LEFT JOIN public.ax_gemarkung ON ax_historischesflurstueck.land::text = ax_gemarkung.land::text AND ax_historischesflurstueck.gemarkungsnummer::text = ax_gemarkung.gemarkungsnummer::text AND ax_gemarkung.endet IS NULL
 	WHERE ax_historischesflurstueck.endet IS NULL);
 	
 	/* historische Flurstücke ohne Raumbezug verarbeiten */
-	INSERT INTO postnas_search (
+	INSERT INTO public.postnas_search (
 		SELECT ax_historischesflurstueckohneraumbezug.gml_id,'flurstueck_historisch_ungenau',
 			to_tsvector('german'::regconfig,
 				/* Mit leerzeichen getrennt */
@@ -105,29 +105,29 @@ BEGIN;
 				/* Gemarkungsname */
 				CASE WHEN ax_gemarkung.bezeichnung IS NOT NULL THEN ax_gemarkung.bezeichnung ELSE '' END
 			)
-		FROM ax_historischesflurstueckohneraumbezug 
-	LEFT JOIN ax_gemarkung ON ax_historischesflurstueckohneraumbezug.land::text = ax_gemarkung.land::text AND ax_historischesflurstueckohneraumbezug.gemarkungsnummer::text = ax_gemarkung.gemarkungsnummer::text AND ax_gemarkung.endet IS NULL
+		FROM public.ax_historischesflurstueckohneraumbezug
+	LEFT JOIN public.ax_gemarkung ON ax_historischesflurstueckohneraumbezug.land::text = ax_gemarkung.land::text AND ax_historischesflurstueckohneraumbezug.gemarkungsnummer::text = ax_gemarkung.gemarkungsnummer::text AND ax_gemarkung.endet IS NULL
 	WHERE ax_historischesflurstueckohneraumbezug.endet IS NULL);
 	
 	/* Straßennamen */
-	INSERT INTO postnas_search (
+	INSERT INTO public.postnas_search (
 		SELECT 
 			ax_lagebezeichnungmithausnummer.gml_id,'adresse',
 			to_tsvector('german', ax_lagebezeichnungkatalogeintrag.bezeichnung || ' ' || reverse(ax_lagebezeichnungkatalogeintrag.bezeichnung::text) || ' ' || ax_lagebezeichnungmithausnummer.hausnummer || ' ' || ax_gemeinde.bezeichnung)
-		FROM ax_lagebezeichnungkatalogeintrag
-		JOIN ax_gemeinde ON ax_lagebezeichnungkatalogeintrag.land = ax_gemeinde.land AND ax_lagebezeichnungkatalogeintrag.regierungsbezirk = ax_gemeinde.regierungsbezirk AND ax_lagebezeichnungkatalogeintrag.kreis = ax_gemeinde.kreis AND ax_lagebezeichnungkatalogeintrag.gemeinde = ax_gemeinde.gemeinde AND ax_gemeinde.endet IS NULL
-		JOIN ax_lagebezeichnungmithausnummer ON ax_lagebezeichnungkatalogeintrag.land = ax_lagebezeichnungmithausnummer.land AND ax_lagebezeichnungkatalogeintrag.regierungsbezirk = ax_lagebezeichnungmithausnummer.regierungsbezirk AND ax_lagebezeichnungkatalogeintrag.kreis = ax_lagebezeichnungmithausnummer.kreis AND ax_lagebezeichnungkatalogeintrag.gemeinde = ax_lagebezeichnungmithausnummer.gemeinde AND ax_lagebezeichnungkatalogeintrag.lage = ax_lagebezeichnungmithausnummer.lage AND ax_lagebezeichnungmithausnummer.endet IS NULL
+		FROM public.ax_lagebezeichnungkatalogeintrag
+		JOIN public.ax_gemeinde ON ax_lagebezeichnungkatalogeintrag.land = ax_gemeinde.land AND ax_lagebezeichnungkatalogeintrag.regierungsbezirk = ax_gemeinde.regierungsbezirk AND ax_lagebezeichnungkatalogeintrag.kreis = ax_gemeinde.kreis AND ax_lagebezeichnungkatalogeintrag.gemeinde = ax_gemeinde.gemeinde AND ax_gemeinde.endet IS NULL
+		JOIN public.ax_lagebezeichnungmithausnummer ON ax_lagebezeichnungkatalogeintrag.land = ax_lagebezeichnungmithausnummer.land AND ax_lagebezeichnungkatalogeintrag.regierungsbezirk = ax_lagebezeichnungmithausnummer.regierungsbezirk AND ax_lagebezeichnungkatalogeintrag.kreis = ax_lagebezeichnungmithausnummer.kreis AND ax_lagebezeichnungkatalogeintrag.gemeinde = ax_lagebezeichnungmithausnummer.gemeinde AND ax_lagebezeichnungkatalogeintrag.lage = ax_lagebezeichnungmithausnummer.lage AND ax_lagebezeichnungmithausnummer.endet IS NULL
 		WHERE ax_lagebezeichnungkatalogeintrag.endet IS NULL
 	);
 	
 	/* Eigentümer */
-	INSERT INTO postnas_search (
+	INSERT INTO public.postnas_search (
 		SELECT 
 			gml_id,'eigentuemer',
 			to_tsvector('german',CASE WHEN nachnameoderfirma IS NOT NULL THEN nachnameoderfirma || ' ' || reverse(nachnameoderfirma) || ' ' ELSE '' END || CASE WHEN vorname IS NOT NULL THEN vorname || ' ' || reverse(vorname) || ' ' ELSE '' END || CASE WHEN geburtsname IS NOT NULL THEN geburtsname || ' ' || reverse(geburtsname) ELSE '' END || CASE WHEN namensbestandteil IS NOT NULL THEN namensbestandteil || ' ' || reverse(namensbestandteil) ELSE '' END || CASE WHEN akademischergrad IS NOT NULL THEN akademischergrad || ' ' || reverse(akademischergrad) ELSE '' END) 
-		FROM ax_person 
+		FROM public.ax_person
 		WHERE endet IS NULL
 	);
 COMMIT;
 
-REINDEX TABLE postnas_search;
+REINDEX TABLE public.postnas_search;

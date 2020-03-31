@@ -1,20 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-/***************************************************************************
-    PostNAS_Search
-    -------------------
-    Date                : July 2016
-    copyright           : (C) 2016 by Kreis-Unna
-    email               : marvin.kinberger@kreis-unna.de
- ***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
-"""
+
 import os, getpass, datetime
 from qgis.PyQt.QtCore import QSettings
 from qgis.PyQt.QtSql import QSqlDatabase, QSqlQuery
@@ -43,9 +28,11 @@ class PostNAS_Logging:
 
     def __insertLogEntry(self,requestType,search,result):
         self.__openDB()
-        sql = "INSERT INTO postnas_search_logging (datum,username,requestType,search,result) VALUES (:datum,:username,:requestType,:search,:result)"
+        sql = "INSERT INTO public.postnas_search_logging (datum,username,requestType,search,result) VALUES (:datum,:username,:requestType,:search,:result)"
 
         query = QSqlQuery(self.db)
+        if (self.dbSchema.lower() != "public"):
+            sql = sql.replace("public.", self.dbSchema + ".")
         query.prepare(sql)
         query.bindValue(":datum",datetime.datetime.now().isoformat())
         query.bindValue(":username",self.username)
@@ -77,6 +64,9 @@ class PostNAS_Logging:
         file_path = os.path.dirname(os.path.realpath(__file__)) + "/create_loggingtable/create_logging_table.sql"
         sql = open(file_path).read()
 
+        if (self.dbSchema.lower() != "public"):
+            sql = sql.replace("public.", self.dbSchema + ".")
+
         self.__openDB()
         query = QSqlQuery(self.db)
         query.exec_(sql)
@@ -92,6 +82,7 @@ class PostNAS_Logging:
                 config = json.load(config_file)
             dbHost = config['db']['host']
             dbDatabasename = config['db']['database']
+            self.dbSchema = config['db']['schema']
             dbPort = config['db']['port']
             dbUsername = config['db']['user']
             dbPassword = config['db']['password']
@@ -102,6 +93,7 @@ class PostNAS_Logging:
 
             dbHost = settings.value("host", "")
             dbDatabasename = settings.value("dbname", "")
+            self.dbSchema = settings.value("schema", "public")
             dbPort = settings.value("port", "5432")
             dbUsername = settings.value("user", "")
             dbPassword = settings.value("password", "")

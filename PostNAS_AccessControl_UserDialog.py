@@ -1,20 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-/***************************************************************************
-    PostNAS_Search
-    -------------------
-    Date                : June 2016
-    copyright          : (C) 2016 by Kreis-Unna
-    email                : marvin.kinberger@kreis-unna.de
- ***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
-"""
 
 import os
 from qgis.PyQt import QtGui,uic

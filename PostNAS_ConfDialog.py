@@ -1,26 +1,11 @@
 # -*- coding: utf-8 -*-
-"""
-/***************************************************************************
-    PostNAS_Search
-    -------------------
-    Date                : June 2016
-    copyright          : (C) 2016 by Kreis-Unna
-    email                : marvin.kinberger@kreis-unna.de
- ***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
-"""
 
 import os
 import json
 from qgis.PyQt import QtGui,uic
 from qgis.PyQt.QtWidgets import QDialog,QMessageBox,QTableWidget,QTableWidgetItem
 from qgis.PyQt.QtCore import *
+from qgis.PyQt.QtSql import *
 from .PostNAS_AccessControl import PostNAS_AccessControl
 from .PostNAS_AccessControl_UserDialog import PostNAS_AccessControl_UserDialog
 import qgis.gui
@@ -38,6 +23,7 @@ class PostNAS_ConfDialog(QDialog, FORM_CLASS):
             self.leHOST.setText(config['db']['host'])
             self.lePORT.setText(config['db']['port'])
             self.leDBNAME.setText(config['db']['database'])
+            self.leSCHEMA.setText(config['db']['schema'])
             self.leUID.setText(config['db']['user'])
             self.lePWD.setText(config['db']['password'])
         else:
@@ -45,6 +31,7 @@ class PostNAS_ConfDialog(QDialog, FORM_CLASS):
             self.leHOST.setText(settings.value("host", ""))
             self.lePORT.setText(settings.value("port", "5432"))
             self.leDBNAME.setText(settings.value("dbname", ""))
+            self.leSCHEMA.setText(settings.value("schema", "public"))
             self.leUID.setText(settings.value("user", ""))
             self.lePWD.setText(settings.value("password", ""))
 
@@ -75,6 +62,7 @@ class PostNAS_ConfDialog(QDialog, FORM_CLASS):
             config['db']['host'] = self.leHOST.text()
             config['db']['port'] = self.lePORT.text()
             config['db']['database'] = self.leDBNAME.text()
+            config['db']['schema'] = self.leSCHEMA.text()
             config['db']['user'] = self.leUID.text()
             config['db']['password'] = self.lePWD.text()
 
@@ -93,6 +81,7 @@ class PostNAS_ConfDialog(QDialog, FORM_CLASS):
             settings.setValue("host", self.leHOST.text())
             settings.setValue("port", self.lePORT.text())
             settings.setValue("dbname", self.leDBNAME.text())
+            settings.setValue("schema", self.leSCHEMA.text())
             settings.setValue("user", self.leUID.text())
             settings.setValue("password", self.lePWD.text())
 
@@ -224,3 +213,43 @@ class PostNAS_ConfDialog(QDialog, FORM_CLASS):
         if(message.exec_() == QMessageBox.Yes):
             if(user.deleteUser() == True):
                 self.loadAccessTable()
+
+    def on_testConnectionButton_released(self):
+        dbHost = self.leHOST.text()
+        dbDatabasename = self.leDBNAME.text()
+        dbSchema = self.leSCHEMA.text()
+        dbPort = self.lePORT.text()
+        dbUsername = self.leUID.text()
+        dbPassword = self.lePWD.text()
+
+        if hasattr(qgis.gui, 'QgsAuthConfigSelect'):
+            authcfg = self.authCfgSelect.configId()
+
+        if authcfg != "" and hasattr(qgis.core, 'QgsAuthManager'):
+            amc = qgis.core.QgsAuthMethodConfig()
+            if hasattr(qgis.core, "QGis"):
+                qgis.core.QgsAuthManager.instance().loadAuthenticationConfig(authcfg, amc, True)
+            else:
+                QgsApplication.instance().authManager().loadAuthenticationConfig(authcfg, amc, True)
+            dbUsername = amc.config("username", dbUsername)
+            dbPassword = amc.config("password", dbPassword)
+
+        db = QSqlDatabase.addDatabase("QPSQL")
+        db.setHostName(dbHost)
+        db.setPort(int(dbPort))
+        db.setDatabaseName(dbDatabasename)
+        db.setUserName(dbUsername)
+        db.setPassword(dbPassword)
+
+        if(db.open()):
+            sql = "SELECT table_name FROM information_schema.tables WHERE table_name = 'ax_flurstueck' AND table_schema = '" + dbSchema + "'";
+            query = QSqlQuery(db)
+            query.exec_(sql)
+
+            if (query.size() > 0):
+                QMessageBox.information(None, "Verbindung hergestellt", "Die Verbindung wurde erfolgreich aufgebaut und ALKIS Daten wurden gefunden.")
+            else:
+                QMessageBox.warning(None, "Keine ALKIS Datenbank", "Die Verbindung wurde hergestellt, es wurden jedoch keine ALKIS Daten in den Datenbank gefunden.")
+        else:
+            QMessageBox.critical(None, "Keine Verbindung", "Es konnte keine Verbindung zum Datenbankserver hergestellt werden.")
+

@@ -1,20 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-/***************************************************************************
-    PostNAS_Search
-    -------------------
-    Date                : June 2016
-    copyright          : (C) 2016 by Kreis-Unna
-    email                : marvin.kinberger@kreis-unna.de
- ***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
-"""
 
 import os
 from qgis.PyQt import QtGui, uic
@@ -60,6 +44,9 @@ class PostNAS_CreateFulltextindex(QDialog):
             if(self.db.isOpen() == False):
                 self.db.open()
         self.queryCreate = QSqlQuery(self.db)
+
+        if (self.dbSchema.lower() != "public"):
+            sql = sql.replace("public.", self.dbSchema + ".")
         self.queryCreate.exec_(sql)
 
         if(self.queryCreate.lastError().number() == -1):
@@ -76,9 +63,15 @@ class PostNAS_CreateFulltextindex(QDialog):
             if(self.db.isOpen() == False):
                 self.db.open()
         self.query = QSqlQuery(self.db)
+
+        if (self.dbSchema.lower() != "public"):
+            sql = sql.replace("public.", self.dbSchema + ".")
         self.query.exec_(sql)
         if(self.query.lastError().number() != -1):
+            QMessageBox.critical(None, "Volltextindex", "Beim erzeugen den Volltextindex ist ein Fehler aufgetreten. Mehr Informationen im Anwendungsprokoll.")
             QgsMessageLog.logMessage("Datenbankfehler beim Erzeugen des Volltextindex: " + self.query.lastError().text(),'PostNAS-Suche', Qgis.Critical)
+        else:
+            QMessageBox.information(None,"Volltextindex","Der Volltextinex wurde erfolgreich erstellt.")
         self.db.close()
 
     def checkPostnasSeachTable(self):
@@ -89,6 +82,7 @@ class PostNAS_CreateFulltextindex(QDialog):
             if(self.db.isOpen() == False):
                 self.db.open()
         query = QSqlQuery(self.db)
+
         query.exec_(sql)
 
         if(query.size() > 0):
@@ -102,6 +96,7 @@ class PostNAS_CreateFulltextindex(QDialog):
                 config = json.load(config_file)
             self.dbHost = config['db']['host']
             self.dbDatabasename = config['db']['database']
+            self.dbSchema = config['db']['schema']
             self.dbPort = config['db']['port']
             self.dbUsername = config['db']['user']
             self.dbPassword = config['db']['password']
@@ -112,6 +107,7 @@ class PostNAS_CreateFulltextindex(QDialog):
 
             self.dbHost = settings.value("host", "")
             self.dbDatabasename = settings.value("dbname", "")
+            self.dbSchema = settings.value("schema", "public")
             self.dbPort = settings.value("port", "5432")
             self.dbUsername = settings.value("user", "")
             self.dbPassword = settings.value("password", "")

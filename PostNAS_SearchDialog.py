@@ -150,7 +150,7 @@ class PostNAS_SearchDialog(QDialog, Ui_PostNAS_SearchDialogBase):
                                     self.addMapFlurstueck(
                                         self.treeWidget.topLevelItem(0).child(0).child(0).child(0).text(1),
                                         self.treeWidget.topLevelItem(0).child(0).child(0).child(0).text(3))
-                                if (self.treeWidget.topLevelItem(0).child(0).child(0).child(0).text(2) == "strasse"):
+                                if (self.treeWidget.topLevelItem(0).child(0).child(0).child(0).text(2) == "hausnummer"):
                                     self.addMapHausnummer(
                                         "'" + self.treeWidget.topLevelItem(0).child(0).child(0).child(0).text(1) + "'")
         else:

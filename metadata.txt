@@ -22,6 +22,7 @@ changelog=Änderungen in 1.4.0:
         * [upd] Rückmeldung nach erfolgreicher oder abgebrochener Erstellung des Volltextindex
         * [fix] Adressen werden nun auch ohne Adresszusatz und der Angabe eines Ort richtig gefunden
         * [fix] Historische Adressen werden nicht mehr doppelt angezeigt
+        * [fix] Direkte Anzeige einer Adresse wenn nur eine Hausnummer gefunden wurde
 
     Änderungen in 1.3.0:
         * Konfiguration der Datenbankverbindung jetzt auch optional über config.json möglich (Hierzu condig.json.dist ind config.json umbenennen). Standard ist jedoch die Konfiguration über die Regestrierung

@@ -316,7 +316,9 @@ class PostNAS_AccessControl:
 
         db = QSqlDatabase.addDatabase("QPSQL")
         db.setHostName(dbHost)
-        db.setPort(int(dbPort))
+        if(dbPort == ""):
+            dbPort = "5432"
+        db.setPort(int(dbPort)) 
         db.setDatabaseName(dbDatabasename)
         db.setUserName(dbUsername)
         db.setPassword(dbPassword)

@@ -6,6 +6,7 @@ from qgis.PyQt import QtGui,uic
 from qgis.PyQt.QtWidgets import QDialog,QMessageBox,QTableWidget,QTableWidgetItem
 from qgis.PyQt.QtCore import *
 from qgis.PyQt.QtSql import *
+from qgis.core import QgsApplication
 from .PostNAS_AccessControl import PostNAS_AccessControl
 from .PostNAS_AccessControl_UserDialog import PostNAS_AccessControl_UserDialog
 import qgis.gui

@@ -114,11 +114,14 @@ class PostNAS_CreateFulltextindex(QDialog):
 
             authcfg = settings.value( "authcfg", "" )
 
-        if authcfg != "" and hasattr(qgis.core,'QgsAuthManager'):
+        if authcfg != "" and hasattr(qgis.core, 'QgsAuthManager'):
             amc = qgis.core.QgsAuthMethodConfig()
-            qgis.core.QgsAuthManager.instance().loadAuthenticationConfig( authcfg, amc, True)
-            self.dbUsername = amc.config( "username", self.dbUsername )
-            self.dbPassword = amc.config( "password", self.dbPassword )
+            if hasattr(qgis.core, "QGis"):
+                qgis.core.QgsAuthManager.instance().loadAuthenticationConfig(authcfg, amc, True)
+            else:
+                QgsApplication.instance().authManager().loadAuthenticationConfig(authcfg, amc, True)
+            self.dbUsername = amc.config("username", self.dbUsername)
+            self.dbPassword = amc.config("password", self.dbPassword)
 
         self.db = QSqlDatabase.addDatabase("QPSQL")
         self.db.setHostName(self.dbHost)

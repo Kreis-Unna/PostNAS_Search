@@ -5,8 +5,8 @@ qgisMaximumVersion=3.98
 description=Searchfunction for PostNAS Database
 description[de]=Suchfunktionalität für eine PostNAS Datenbank
 version=1.4.0
-author=Marvin Kinberger - Kreis-Unna
-email=marvin.kinberger@kreis-unna.de
+author=Michael Dreesmann - Kreis-Unna
+email=michael.dreesmann@kreis-unna.de
 
 tags=cadastre,germany,NAS,ALKIS,PostNAS
 
